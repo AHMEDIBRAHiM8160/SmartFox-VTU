@@ -1,7 +1,5 @@
 # Smart Fox VTU 
 
-This build combines the latest Milestone 1 Upgrade 3 brand-logo frontend with the Milestone 2.1 backend foundation.
-
 ## Frontend
 - Smart Fox VTU branding using the supplied company logo
 - Responsive customer pages
