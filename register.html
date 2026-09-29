@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Create Your Account — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-side">
+    <a href="index.html" class="logo"><span class="logo-icon"><img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU"></span><span style="color:#fff;">Smart Fox <em>VTU</em></span></a>
+    <div>
+      <div class="quote">"Airtime, data, school fees and my wallet — all in one app. Smart Fox VTU just makes life easier."</div>
+      <div class="quote-sub">Join thousands managing their everyday payments the smart way.</div>
+    </div>
+    <div></div>
+  </div>
+  <div class="auth-form-col">
+    <div class="auth-box">
+      <h1>Create Your Account</h1>
+      <p class="sub">Join today and get started with our services.</p>
+
+      <form id="register-form" novalidate>
+        <div class="field" id="reg-fullname">
+          <label>Full Name</label>
+          <input type="text" name="fullName" placeholder="Enter your full name" />
+          <div class="field-error">Enter your full name.</div>
+        </div>
+        <div class="field" id="reg-email">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="Enter your email address" />
+          <div class="field-error">Enter a valid email address.</div>
+        </div>
+        <div class="field" id="reg-phone">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" placeholder="Enter your phone number" />
+          <div class="field-error">Enter a valid 11-digit phone number.</div>
+        </div>
+        <div class="field" id="reg-password">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" name="password" id="reg-pw-input" placeholder="Create a password" />
+            <span class="pw-toggle" onclick="togglePasswordField('reg-pw-input', this)">Show</span>
+          </div>
+          <div class="field-error">Password must be at least 6 characters.</div>
+        </div>
+        <div class="field" id="reg-confirm">
+          <label>Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" name="confirmPassword" id="reg-cpw-input" placeholder="Confirm your password" />
+            <span class="pw-toggle" onclick="togglePasswordField('reg-cpw-input', this)">Show</span>
+          </div>
+          <div class="field-error">Passwords do not match.</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+      </form>
+
+      <div class="form-foot">Already have an account? <a href="login.html" style="color:var(--primary);font-weight:600;">Login</a></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  redirectIfAuthed();
+  bindRegisterForm();
+</script>
+</body>
+</html>

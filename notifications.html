@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Notifications — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="notif-content">
+  <div class="table-toolbar">
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="all">All</div>
+      <div class="filter-tab" data-filter="unread">Unread</div>
+      <div class="filter-tab" data-filter="read">Read</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="mark-all-read">Mark all as read</button>
+  </div>
+  <div class="panel" id="notif-list-wrap"></div>
+</template>
+
+<script src="js/common.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('notifications', 'Notifications', 'Stay up to date with your account activity.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('notif-content').innerHTML;
+
+  let notifFilter = 'all';
+  function renderNotifList() {
+    let list = sfvtuGet(SFVTU_KEYS.notifications, []);
+    if (notifFilter === 'unread') list = list.filter(n => !n.read);
+    if (notifFilter === 'read') list = list.filter(n => n.read);
+    document.getElementById('notif-list-wrap').innerHTML = list.map(n => `
+      <div class="notif-row">
+        <div class="notif-dot" style="background:${n.read ? 'var(--border)' : 'var(--primary)'}"></div>
+        <div><p>${n.message}</p><div class="n-time">${formatDate(n.date)}</div></div>
+      </div>`).join('') || '<p style="color:var(--text-muted);font-size:0.88rem;padding:20px 0;">No notifications here.</p>';
+  }
+  renderNotifList();
+
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      notifFilter = tab.dataset.filter;
+      renderNotifList();
+    });
+  });
+
+  document.getElementById('mark-all-read').addEventListener('click', () => {
+    const list = sfvtuGet(SFVTU_KEYS.notifications, []).map(n => ({ ...n, read: true }));
+    sfvtuSet(SFVTU_KEYS.notifications, list);
+    renderNotifList();
+    toast('All notifications marked as read.', 'success');
+  });
+</script>
+</body>
+</html>

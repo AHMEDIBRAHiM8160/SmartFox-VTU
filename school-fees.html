@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>School Fees — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="school-fees-content">
+  <div class="form-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span style="font-size:0.85rem;color:var(--text-muted);">Wallet Balance</span>
+      <strong id="school-balance">₦0.00</strong>
+    </div>
+    <form id="school-fees-form">
+      <div class="field">
+        <label>Institution</label>
+        <select id="sf-institution"></select>
+      </div>
+      <div class="field">
+        <label>Student / Application ID</label>
+        <input type="text" id="sf-student-id" placeholder="Enter student or application ID" />
+      </div>
+      <div class="field">
+        <label>Student Name</label>
+        <input type="text" id="sf-student-name" placeholder="Enter student's full name" />
+      </div>
+      <div class="field">
+        <label>Fee Type</label>
+        <select id="sf-fee-type"></select>
+      </div>
+      <div class="field">
+        <label>Amount</label>
+        <input type="number" id="sf-amount" placeholder="Enter amount" min="1000" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Pay Now</button>
+    </form>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script src="js/airtime.js"></script>
+<script src="js/school-fees.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('school-fees', 'School Fees', 'Pay tuition and other school fees securely.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('school-fees-content').innerHTML;
+  initSchoolFeesPage();
+</script>
+</body>
+</html>

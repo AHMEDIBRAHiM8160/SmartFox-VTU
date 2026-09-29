@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"><title>Transaction Receipt — Smart Fox VTU</title><link rel="icon" href="assets/smart-fox-brand.png"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css"></head>
+<body class="receipt-page"><div class="receipt-page-wrap"><div class="receipt-page-card">
+<div class="receipt-success-icon"><i class="fa-solid fa-check"></i></div><h1 id="receipt-heading">Transaction Successful</h1><p class="receipt-sub">Your transaction has been completed and your receipt is ready.</p>
+<div id="receipt-slip" class="receipt-slip"></div>
+<div class="receipt-page-actions"><button class="btn btn-primary btn-block" id="share-receipt"><i class="fa-solid fa-share-nodes"></i> Share Receipt</button><button class="btn btn-outline btn-block" id="download-receipt"><i class="fa-solid fa-download"></i> Download Receipt</button><button class="btn btn-ghost btn-block" id="receipt-complete"><i class="fa-solid fa-check"></i> Complete</button></div>
+<p class="receipt-note">On supported phones, Share Receipt can send the receipt to another app. Download saves an image of the receipt.</p>
+</div></div>
+<script src="js/common.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script>
+const receipt=getLastReceipt();
+if(!receipt){window.location.href='dashboard.html';}
+else{
+ const tx=receipt.tx||{}; document.getElementById('receipt-heading').textContent=receipt.heading||'Transaction Successful';
+ const network=tx.network?tx.network.toUpperCase():'';
+ const slip=document.getElementById('receipt-slip');
+ slip.innerHTML=`<div class="receipt-brand"><img src="assets/smart-fox-brand.png" alt="Smart Fox VTU"><div><strong>Smart Fox VTU</strong><small>Official Transaction Receipt</small></div></div><div class="receipt-row"><span>Transaction Type</span><strong>${tx.service||'Service'}</strong></div>${network?`<div class="receipt-row"><span>Network</span><strong>${network}</strong></div>`:''}${tx.phone?`<div class="receipt-row"><span>Phone Number</span><strong>${tx.phone}</strong></div>`:''}${tx.plan?`<div class="receipt-row"><span>Data Plan</span><strong>${tx.plan}</strong></div>`:''}<div class="receipt-row"><span>Amount</span><strong>${formatNaira(receipt.amount||tx.amount)}</strong></div><div class="receipt-row"><span>Reference</span><strong>${tx.ref||'—'}</strong></div><div class="receipt-row"><span>Date &amp; Time</span><strong>${tx.date?new Date(tx.date).toLocaleString():'—'}</strong></div><div class="receipt-status"><span>Status</span><strong><i class="fa-solid fa-circle-check"></i> Successful</strong></div>`;
+ async function makeImage(){return await html2canvas(slip,{backgroundColor:'#ffffff',scale:2,useCORS:true});}
+ document.getElementById('download-receipt').onclick=async()=>{const canvas=await makeImage();const a=document.createElement('a');a.download=`Smart-Fox-VTU-Receipt-${tx.ref||'transaction'}.png`;a.href=canvas.toDataURL('image/png');a.click();};
+ document.getElementById('share-receipt').onclick=async()=>{try{const canvas=await makeImage();const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));const file=new File([blob],`Smart-Fox-VTU-Receipt-${tx.ref||'transaction'}.png`,{type:'image/png'});if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]})){await navigator.share({title:'Smart Fox VTU Receipt',text:'Transaction receipt from Smart Fox VTU.',files:[file]});}else if(navigator.share){await navigator.share({title:'Smart Fox VTU Receipt',text:`${tx.service||'Transaction'} — ${formatNaira(receipt.amount||tx.amount)} — Ref: ${tx.ref||'—'}`});}else{await navigator.clipboard?.writeText(`Smart Fox VTU Receipt\n${tx.service||'Transaction'}\nAmount: ${formatNaira(receipt.amount||tx.amount)}\nReference: ${tx.ref||'—'}`);toast('Receipt details copied.','success');}}catch(e){if(e.name!=='AbortError')toast('Receipt sharing was not completed.','error');}};
+ document.getElementById('receipt-complete').onclick=()=>window.location.href='dashboard.html';
+}
+</script></body></html>

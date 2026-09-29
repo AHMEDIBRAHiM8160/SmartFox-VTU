@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Smart Fox VTU logo">
+  <defs>
+    <linearGradient id="fox" x1="18" y1="10" x2="105" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffb02e"/>
+      <stop offset="0.48" stop-color="#ff7b00"/>
+      <stop offset="1" stop-color="#e34d17"/>
+    </linearGradient>
+  </defs>
+  <path d="M17 31 29 7l25 18 12-8 25-18 12 30-8 56-31 23-31-23z" fill="url(#fox)"/>
+  <path d="M18 31 29 8l23 18-17 17zM102 31 91 8 68 26l17 17z" fill="#ff8d0a"/>
+  <path d="M27 57c0-18 13-31 33-31s33 13 33 31c0 25-15 42-33 51-18-9-33-26-33-51z" fill="#fff"/>
+  <path d="M28 56c8 5 17 6 25 2M92 56c-8 5-17 6-25 2" fill="none" stroke="#ffd28a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="48" cy="57" r="4" fill="#0b1738"/><circle cx="72" cy="57" r="4" fill="#0b1738"/>
+  <path d="M55 72h10l-5 7z" fill="#ff7b00"/>
+  <path d="M50 84c6 4 14 4 20 0" fill="none" stroke="#0b1738" stroke-width="3" stroke-linecap="round"/>
+</svg>

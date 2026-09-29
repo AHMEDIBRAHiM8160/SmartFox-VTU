@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Dashboard — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="dashboard-content">
+  <div class="balance-card">
+    <div class="balance-card-top">
+      <div>
+        <div class="lbl"><i class="fa-solid fa-wallet"></i> Available Balance <span class="balance-tag"><i class="fa-solid fa-circle" style="font-size:.45rem"></i> Active</span></div>
+        <div class="amt" id="dash-balance">₦0.00</div>
+      </div>
+      <div class="balance-actions">
+        <button class="icon-btn" id="dash-balance-toggle" title="Hide balance"><i class="fa-solid fa-eye"></i></button>
+        <a href="wallet.html" class="icon-btn" title="Fund wallet"><i class="fa-solid fa-plus"></i></a>
+      </div>
+    </div>
+    <div class="balance-card-bottom">
+      <span style="font-size:0.8rem;opacity:0.85;">Smart Fox Wallet</span>
+      <a href="wallet.html" class="btn">Fund Wallet</a>
+    </div>
+  </div>
+
+  <div class="quick-grid">
+    <a href="airtime.html" class="quick-tile"><div class="qi icon-indigo"><i class="fa-solid fa-mobile-screen-button"></i></div><span>Airtime</span></a>
+    <a href="data.html" class="quick-tile"><div class="qi icon-orange"><i class="fa-solid fa-wifi"></i></div><span>Data</span></a>
+    <a href="school-fees.html" class="quick-tile"><div class="qi icon-green"><i class="fa-solid fa-graduation-cap"></i></div><span>School Fees</span></a>
+    <a href="wallet.html" class="quick-tile"><div class="qi icon-blue"><i class="fa-solid fa-wallet"></i></div><span>Fund Wallet</span></a>
+    <a href="transactions.html" class="quick-tile"><div class="qi icon-indigo"><i class="fa-solid fa-receipt"></i></div><span>Transactions</span></a>
+    <a href="help.html" class="quick-tile"><div class="qi icon-purple"><i class="fa-solid fa-layer-group"></i></div><span>More Services</span></a>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-head"><h3>Recent Transactions</h3><a href="transactions.html">View All</a></div>
+      <div id="dash-tx-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Notifications</h3><a href="notifications.html">View All</a></div>
+      <div id="dash-notif-list"></div>
+    </div>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('dashboard', `Welcome back, ${(currentUser() || {}).fullName ? (currentUser().fullName.split(' ')[0]) : 'there'} 👋`, 'Here\'s what\'s happening with your account today.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('dashboard-content').innerHTML;
+
+  bindBalanceToggle('dash-balance-toggle', 'dash-balance', () => getWallet().balance);
+
+  const txIcons = { Airtime: '<i class=\"fa-solid fa-mobile-screen-button\"></i>', Data: '<i class=\"fa-solid fa-wifi\"></i>', 'School Fees': '<i class=\"fa-solid fa-graduation-cap\"></i>', Wallet: '<i class=\"fa-solid fa-wallet\"></i>' };
+  const txColors = { Airtime: 'icon-indigo', Data: 'icon-orange', 'School Fees': 'icon-green', Wallet: 'icon-indigo' };
+  const recentTx = getTransactions().slice(0, 4);
+  document.getElementById('dash-tx-list').innerHTML = recentTx.map(t => `
+    <div class="tx-row">
+      <div class="tx-left">
+        <div class="tx-icon ${txColors[t.service] || 'icon-indigo'}">${txIcons[t.service] || '<i class=\"fa-solid fa-circle-dot\"></i>'}</div>
+        <div><div class="tx-name">${t.description}</div><div class="tx-date">${formatDate(t.date)}</div></div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amt">${t.type === 'credit' ? '+' : '-'}${formatNaira(t.amount)}</div>
+        <span class="badge badge-${t.status === 'success' ? 'success' : t.status}">${t.status[0].toUpperCase() + t.status.slice(1)}</span>
+      </div>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:0.88rem;">No transactions yet.</p>';
+
+  showWelcomeAfterLoginIfNeeded();
+
+  const recentNotif = sfvtuGet(SFVTU_KEYS.notifications, []).slice(0, 4);
+  document.getElementById('dash-notif-list').innerHTML = recentNotif.map(n => `
+    <div class="notif-row">
+      <div class="notif-dot"></div>
+      <div><p>${n.message}</p><div class="n-time">${formatDate(n.date)}</div></div>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:0.88rem;">No notifications yet.</p>';
+</script>
+</body>
+</html>

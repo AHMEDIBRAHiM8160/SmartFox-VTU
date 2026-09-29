@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Transaction History — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="tx-content">
+  <div class="table-toolbar">
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="All">All</div>
+      <div class="filter-tab" data-filter="Airtime">Airtime</div>
+      <div class="filter-tab" data-filter="Data">Data</div>
+      <div class="filter-tab" data-filter="School Fees">School Fees</div>
+      <div class="filter-tab" data-filter="Wallet">Wallet</div>
+    </div>
+    <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="tx-search" placeholder="Search by reference or description..." /></div>
+  </div>
+  <p id="tx-count" style="font-size:0.83rem;color:var(--text-muted);margin-bottom:12px;"></p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Reference</th><th>Service</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="tx-table-body"></tbody>
+    </table>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script src="js/transactions.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('transactions', 'Transaction History', 'View, filter, and search all your transactions.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('tx-content').innerHTML;
+  initTransactionsPage();
+</script>
+</body>
+</html>

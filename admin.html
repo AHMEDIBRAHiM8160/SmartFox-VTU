@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07142f">
+<title>Admin Dashboard — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-page">
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-brand-row">
+      <a href="admin.html" class="logo logo-light admin-logo">
+        <span class="logo-icon"><img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU"></span>
+        <span>Smart Fox <em>VTU</em></span>
+      </a>
+      <button class="admin-close" id="adminClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="admin-role"><span class="role-avatar">AD</span><div><strong>Administrator</strong><small>Platform control</small></div></div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <button class="admin-nav-link active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Overview</span></button>
+      <button class="admin-nav-link" data-section="users"><i class="fa-solid fa-users"></i><span>Users</span><b id="nav-users-count">1,248</b></button>
+      <button class="admin-nav-link" data-section="transactions"><i class="fa-solid fa-receipt"></i><span>Transactions</span></button>
+      <button class="admin-nav-link" data-section="wallets"><i class="fa-solid fa-wallet"></i><span>Wallet Activities</span></button>
+      <button class="admin-nav-link" data-section="services"><i class="fa-solid fa-layer-group"></i><span>Services</span></button>
+      <button class="admin-nav-link" data-section="reports"><i class="fa-solid fa-chart-line"></i><span>Reports</span></button>
+      <button class="admin-nav-link" data-section="settings"><i class="fa-solid fa-sliders"></i><span>Settings</span></button>
+    </nav>
+    <div class="admin-sidebar-bottom">
+      <a href="dashboard.html"><i class="fa-solid fa-arrow-left"></i> Customer view</a>
+      <a href="index.html" class="admin-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+  </aside>
+
+  <div class="admin-main-wrap">
+    <header class="admin-topbar">
+      <div class="admin-top-left">
+        <button class="admin-menu-btn" id="adminMenu" aria-label="Open admin menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="admin-page-heading"><span id="section-eyebrow">Platform Control</span><h1 id="section-title">Admin Dashboard</h1></div>
+      </div>
+      <div class="admin-top-actions">
+        <div class="admin-global-search"><i class="fa-solid fa-magnifying-glass"></i><input id="globalAdminSearch" type="search" placeholder="Search users or references..."></div>
+        <button class="admin-icon-btn" title="Notifications" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="admin-alert-dot"></span></button>
+        <div class="admin-profile"><span class="role-avatar small">AD</span><div><strong>Admin</strong><small>Super admin</small></div><i class="fa-solid fa-chevron-down"></i></div>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <!-- OVERVIEW -->
+      <section class="admin-section active" id="section-overview">
+        <div class="admin-welcome">
+          <div><span class="eyebrow-pill"><i class="fa-solid fa-shield-halved"></i> Secure control center</span><h2>Good morning, Admin.</h2><p>Monitor Smart Fox VTU activity, services, wallets and platform performance from one place.</p></div>
+          <div class="admin-welcome-art"><img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU logo"><span>Smart payments.<br><strong>Simple life.</strong></span></div>
+        </div>
+
+        <div class="admin-stat-grid">
+          <article class="admin-stat-card"><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div><div><span>Total Users</span><strong id="stat-users">1,248</strong><small><i class="fa-solid fa-arrow-up"></i> 8.4% this month</small></div></article>
+          <article class="admin-stat-card"><div class="stat-icon purple"><i class="fa-solid fa-receipt"></i></div><div><span>Total Transactions</span><strong id="stat-tx">3,562</strong><small><i class="fa-solid fa-arrow-up"></i> 12.1% this month</small></div></article>
+          <article class="admin-stat-card"><div class="stat-icon orange"><i class="fa-solid fa-naira-sign"></i></div><div><span>Service Volume</span><strong id="stat-volume">₦2.57M</strong><small>Across active services</small></div></article>
+          <article class="admin-stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div><span>Success Rate</span><strong id="stat-success-rate">93.8%</strong><small>Based on transactions</small></div></article>
+        </div>
+
+        <div class="admin-overview-grid">
+          <article class="admin-card revenue-card">
+            <div class="admin-card-head"><div><h3>Revenue overview</h3><p>Illustrative monthly service volume</p></div><select id="revenuePeriod"><option>Last 6 months</option><option>Last 12 months</option></select></div>
+            <div class="revenue-chart" id="revenueChart"></div>
+            <div class="chart-legend"><span><i class="legend-dot blue"></i> Data</span><span><i class="legend-dot orange"></i> Airtime</span><span><i class="legend-dot green"></i> Other services</span></div>
+          </article>
+          <article class="admin-card service-health-card">
+            <div class="admin-card-head"><div><h3>Service health</h3><p>Current frontend demo status</p></div><button class="text-btn" data-section-jump="services">Manage</button></div>
+            <div class="health-list" id="healthList"></div>
+          </article>
+        </div>
+
+        <div class="admin-bottom-grid">
+          <article class="admin-card">
+            <div class="admin-card-head"><div><h3>Recent transactions</h3><p>Latest platform activity</p></div><button class="text-btn" data-section-jump="transactions">View all</button></div>
+            <div class="admin-mini-list" id="adminMiniTransactions"></div>
+          </article>
+          <article class="admin-card alerts-card">
+            <div class="admin-card-head"><div><h3>Attention needed</h3><p>Items that may require review</p></div></div>
+            <div class="attention-list">
+              <div><span class="attention-icon warning"><i class="fa-solid fa-clock"></i></span><div><strong>110 pending transactions</strong><small>Review pending service requests.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
+              <div><span class="attention-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>128 failed transactions</strong><small>Check failures and refund cases.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
+              <div><span class="attention-icon blue"><i class="fa-solid fa-user-clock"></i></span><div><strong>6 new users today</strong><small>Monitor new account activity.</small></div><button class="text-btn" data-section-jump="users">Open</button></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section class="admin-section" id="section-users">
+        <div class="section-toolbar"><div><h2>Users</h2><p>Manage registered Smart Fox VTU customers.</p></div><button class="admin-primary-btn" id="exportUsers"><i class="fa-solid fa-download"></i> Export</button></div>
+        <div class="admin-card table-card">
+          <div class="table-controls"><div class="admin-search"><i class="fa-solid fa-magnifying-glass"></i><input id="userSearch" placeholder="Search name, email or phone"></div><select id="userStatusFilter"><option value="all">All statuses</option><option value="Active">Active</option><option value="Suspended">Suspended</option></select></div>
+          <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>User</th><th>Phone</th><th>Joined</th><th>Wallet</th><th>Status</th><th>Action</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS -->
+      <section class="admin-section" id="section-transactions">
+        <div class="section-toolbar"><div><h2>Transactions</h2><p>Review airtime, data, school-fee and wallet activity.</p></div><button class="admin-primary-btn" id="exportTransactions"><i class="fa-solid fa-download"></i> Export</button></div>
+        <div class="admin-card table-card">
+          <div class="table-controls"><div class="admin-search"><i class="fa-solid fa-magnifying-glass"></i><input id="transactionSearch" placeholder="Search reference or user"></div><div class="filter-pills" id="transactionFilters"><button class="active" data-filter="all">All</button><button data-filter="success">Successful</button><button data-filter="pending">Pending</button><button data-filter="failed">Failed</button></div></div>
+          <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Reference</th><th>User</th><th>Service</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody id="transactionsTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- WALLETS -->
+      <section class="admin-section" id="section-wallets">
+        <div class="section-toolbar"><div><h2>Wallet Activities</h2><p>Monitor customer wallet funding, debits, credits and refunds.</p></div><button class="admin-primary-btn" id="exportWallets"><i class="fa-solid fa-download"></i> Export</button></div>
+        <div class="admin-stat-grid compact"><article class="admin-stat-card"><div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div><div><span>Total wallet balance</span><strong>₦8.42M</strong><small>Across customer wallets</small></div></article><article class="admin-stat-card"><div class="stat-icon green"><i class="fa-solid fa-arrow-down"></i></div><div><span>Today's funding</span><strong>₦420K</strong><small>56 successful credits</small></div></article><article class="admin-stat-card"><div class="stat-icon orange"><i class="fa-solid fa-arrow-up"></i></div><div><span>Today's spending</span><strong>₦318K</strong><small>Utility purchases</small></div></article><article class="admin-stat-card"><div class="stat-icon purple"><i class="fa-solid fa-rotate-left"></i></div><div><span>Refunds pending</span><strong>₦36K</strong><small>12 cases</small></div></article></div>
+        <div class="admin-card table-card"><div class="admin-card-head"><div><h3>Recent wallet ledger</h3><p>Demo records ready for backend integration.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Reference</th><th>User</th><th>Type</th><th>Amount</th><th>Balance after</th><th>Status</th></tr></thead><tbody id="walletTable"></tbody></table></div></div>
+      </section>
+
+      <!-- SERVICES -->
+      <section class="admin-section" id="section-services">
+        <div class="section-toolbar"><div><h2>Services</h2><p>Prepare and control the services that will later connect to real APIs.</p></div><button class="admin-primary-btn" id="addServiceBtn"><i class="fa-solid fa-plus"></i> Add service</button></div>
+        <div class="service-admin-grid" id="serviceAdminGrid"></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="admin-section" id="section-reports">
+        <div class="section-toolbar"><div><h2>Reports</h2><p>High-level performance summaries for Smart Fox VTU.</p></div><button class="admin-primary-btn" id="exportReport"><i class="fa-solid fa-file-export"></i> Export report</button></div>
+        <div class="report-grid"><article class="admin-card report-highlight"><span>Total service volume</span><strong>₦2,570,000</strong><small>Illustrative demo value</small><div class="report-line"><i style="width:78%"></i></div></article><article class="admin-card report-highlight"><span>Successful transactions</span><strong>3,324</strong><small>93.8% of all transactions</small><div class="report-line"><i style="width:94%"></i></div></article><article class="admin-card report-highlight"><span>Active users</span><strong>1,206</strong><small>96.6% of registered users</small><div class="report-line"><i style="width:97%"></i></div></article></div>
+        <div class="admin-overview-grid"><article class="admin-card"><div class="admin-card-head"><div><h3>Service breakdown</h3><p>Illustrative distribution</p></div></div><div class="breakdown-list"><div><span><i class="fa-solid fa-wifi"></i> Data</span><strong>46.7%</strong><div><i style="width:47%"></i></div></div><div><span><i class="fa-solid fa-mobile-screen-button"></i> Airtime</span><strong>20.2%</strong><div><i style="width:20%"></i></div></div><div><span><i class="fa-solid fa-graduation-cap"></i> School Fees</span><strong>33.1%</strong><div><i style="width:33%"></i></div></div></div></article><article class="admin-card"><div class="admin-card-head"><div><h3>Platform notes</h3><p>Milestone 1</p></div></div><ul class="report-notes"><li><i class="fa-solid fa-circle-check"></i> Frontend service architecture is ready.</li><li><i class="fa-solid fa-circle-check"></i> Admin controls are represented with demo data.</li><li><i class="fa-solid fa-circle-info"></i> Real analytics will come from MySQL later.</li></ul></article></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="admin-section" id="section-settings">
+        <div class="section-toolbar"><div><h2>Settings</h2><p>Frontend controls that will later move behind authenticated admin APIs.</p></div><button class="admin-primary-btn" id="saveSettings"><i class="fa-solid fa-floppy-disk"></i> Save settings</button></div>
+        <div class="settings-grid"><article class="admin-card"><div class="admin-card-head"><div><h3>Platform settings</h3><p>Control how services appear to customers.</p></div></div><label class="setting-row"><span><strong>Maintenance mode</strong><small>Temporarily restrict customer actions.</small></span><input type="checkbox" class="toggle-input" id="maintenanceToggle"><i class="toggle-ui"></i></label><label class="setting-row"><span><strong>New registrations</strong><small>Allow new customer accounts.</small></span><input type="checkbox" class="toggle-input" id="registrationToggle" checked><i class="toggle-ui"></i></label><label class="setting-row"><span><strong>Wallet funding</strong><small>Allow wallet funding requests.</small></span><input type="checkbox" class="toggle-input" id="fundingToggle" checked><i class="toggle-ui"></i></label></article><article class="admin-card"><div class="admin-card-head"><div><h3>Admin security</h3><p>Controls for the future production backend.</p></div></div><button class="security-row"><span><i class="fa-solid fa-key"></i><b>Change admin password</b></span><i class="fa-solid fa-chevron-right"></i></button><button class="security-row"><span><i class="fa-solid fa-user-shield"></i><b>Admin access roles</b></span><i class="fa-solid fa-chevron-right"></i></button><button class="security-row"><span><i class="fa-solid fa-clock-rotate-left"></i><b>Admin activity log</b></span><i class="fa-solid fa-chevron-right"></i></button></article></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="admin-overlay" id="adminOverlay"></div>
+<div class="toast-stack" id="adminToastStack"></div>
+<script src="js/common.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Profile — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="profile-content">
+  <div class="profile-head">
+    <div class="av-lg" id="profile-av"></div>
+    <div>
+      <h2 id="profile-name" style="font-size:1.2rem;"></h2>
+      <span class="badge badge-success">Active Account</span>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-head"><h3>Personal Information</h3></div>
+    <div class="info-row"><span class="lbl">Full Name</span><span id="pi-name"></span></div>
+    <div class="info-row"><span class="lbl">Phone Number</span><span id="pi-phone"></span></div>
+    <div class="info-row"><span class="lbl">Email Address</span><span id="pi-email"></span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h3>Account Settings</h3></div>
+    <div class="settings-link"><span>🔑 Change Password</span><span>›</span></div>
+    <div class="settings-link"><span><i class="fa-regular fa-bell"></i> Notification Settings</span><span>›</span></div>
+    <div class="settings-link"><span style="color:var(--success);">🟢 Account Status: Active</span></div>
+    <div class="settings-link" id="profile-logout" style="cursor:pointer;color:var(--danger);"><span><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</span><span>›</span></div>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('profile', 'Profile', 'Manage your personal information and account settings.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('profile-content').innerHTML;
+
+  const user = currentUser() || { fullName: 'Guest User', email: '—', phone: '—' };
+  document.getElementById('profile-av').textContent = initials(user.fullName);
+  document.getElementById('profile-name').textContent = user.fullName;
+  document.getElementById('pi-name').textContent = user.fullName;
+  document.getElementById('pi-phone').textContent = user.phone;
+  document.getElementById('pi-email').textContent = user.email;
+  document.getElementById('profile-logout').addEventListener('click', logoutUser);
+</script>
+</body>
+</html>

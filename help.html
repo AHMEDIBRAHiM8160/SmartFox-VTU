@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Help & Support — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="help-content">
+  <div class="search-box" style="width:100%;max-width:420px;margin-bottom:24px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search help topics..." /></div>
+  <div class="help-grid">
+    <div class="panel faq-panel">
+      <div class="panel-head"><h3>Frequently Asked Questions</h3></div>
+      <div class="faq-item"><div class="faq-q">How do I fund my wallet? <span class="chev">⌄</span></div><div class="faq-a">Go to the Wallet page, choose or enter an amount, select a payment method, then tap Continue.</div></div>
+      <div class="faq-item"><div class="faq-q">What if a transaction fails? <span class="chev">⌄</span></div><div class="faq-a">Failed transactions are automatically reversed to your wallet. Check Transaction History for the current status.</div></div>
+      <div class="faq-item"><div class="faq-q">How long does school fee payment take? <span class="chev">⌄</span></div><div class="faq-a">School fee payments are marked pending until confirmed by the institution, usually within 24 hours.</div></div>
+      <div class="faq-item"><div class="faq-q">Can I change my registered phone number? <span class="chev">⌄</span></div><div class="faq-a">Yes, go to Profile → Personal Information to update your details.</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Contact Us</h3></div>
+      <div class="contact-tile"><div class="c-ic"><i class="fa-regular fa-comments"></i></div><div><h4>Live Chat</h4><p>Chat with our support team, 24/7.</p></div></div>
+      <div class="contact-tile"><div class="c-ic">✉️</div><div><h4>Email Support</h4><p>support@smartfoxvtu.com</p></div></div>
+      <div class="contact-tile"><div class="c-ic">📞</div><div><h4>Call Us</h4><p>0800-SMART-FOX</p></div></div>
+      <a href="#" class="btn btn-outline btn-block" style="margin-top:14px;">Report a Problem</a>
+    </div>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('help', 'Help & Support', 'Find answers or get in touch with our support team.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('help-content').innerHTML;
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
+  });
+</script>
+</body>
+</html>

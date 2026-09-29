@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Login — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-side">
+    <a href="index.html" class="logo"><span class="logo-icon"><img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU"></span><span style="color:#fff;">Smart Fox <em>VTU</em></span></a>
+    <div>
+      <div class="quote">"Smart payments. Simple life. Welcome back to Smart Fox VTU."</div>
+      <div class="quote-sub">Log in to fund your wallet, buy airtime and data, and pay school fees.</div>
+    </div>
+    <div></div>
+  </div>
+  <div class="auth-form-col">
+    <div class="auth-box">
+      <h1>Welcome Back</h1>
+      <p class="sub">Login to your account to continue.</p>
+
+      <form id="login-form" novalidate>
+        <div class="field" id="login-id">
+          <label>Email or Phone</label>
+          <input type="text" name="identifier" placeholder="Enter your email or phone number" />
+          <div class="field-error">Enter your email or phone number.</div>
+        </div>
+        <div class="field" id="login-password">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" name="password" id="login-pw-input" placeholder="Enter your password" />
+            <span class="pw-toggle" onclick="togglePasswordField('login-pw-input', this)">Show</span>
+          </div>
+          <div class="field-error">Enter your password.</div>
+        </div>
+        <div class="field-row">
+          <label class="checkbox-row"><input type="checkbox" /> Remember me</label>
+          <a href="#" style="color:var(--primary);font-weight:600;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+      </form>
+
+      <div class="form-foot">Don't have an account? <a href="register.html" style="color:var(--primary);font-weight:600;">Register</a></div>
+
+      <div class="trust-line">🛡️ Your security matters. Your login info stays safe and protected.</div>
+    </div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  redirectIfAuthed();
+  bindLoginForm();
+</script>
+</body>
+</html>

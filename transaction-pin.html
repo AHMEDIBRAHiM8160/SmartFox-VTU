@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"><title>Transaction PIN — Smart Fox VTU</title><link rel="icon" href="assets/smart-fox-brand.png"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css"></head>
+<body class="pin-page"><div class="pin-page-wrap"><div class="pin-page-card">
+<div class="welcome-logo"><img src="assets/smart-fox-brand.png" alt="Smart Fox VTU"></div>
+<h1>Confirm Transaction</h1><p class="sub">Enter your 4-digit transaction PIN to continue securely.</p>
+<div id="pin-summary" class="pin-summary"></div>
+<form id="transaction-pin-form"><div class="field"><label>Transaction PIN</label><input id="transaction-pin-input" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" type="password" placeholder="••••" autocomplete="off" autofocus></div><div id="transaction-pin-error" class="pin-error"></div><button class="btn btn-primary btn-block" type="submit"><i class="fa-solid fa-lock"></i> Continue</button></form>
+<a class="pin-cancel" href="dashboard.html">Cancel</a>
+</div></div>
+<script src="js/common.js"></script><script src="js/data.js"></script><script src="js/airtime.js"></script><script>
+requireAuth();
+const pending=getPendingPurchase();
+if(!pending){window.location.href='dashboard.html';}
+else{
+ document.getElementById('pin-summary').innerHTML=`<div><span>Service</span><strong>${pending.type==='data'?'Data':'Airtime'}</strong></div><div><span>Network</span><strong>${pending.network.toUpperCase()}</strong></div><div><span>Phone</span><strong>${pending.phone}</strong></div><div><span>Amount</span><strong>${formatNaira(pending.amount)}</strong></div>${pending.plan?`<div><span>Plan</span><strong>${pending.plan.size} — ${pending.plan.validity}</strong></div>`:''}`;
+ document.getElementById('transaction-pin-form').addEventListener('submit',e=>{
+  e.preventDefault(); const input=document.getElementById('transaction-pin-input'); const err=document.getElementById('transaction-pin-error'); const pin=input.value.trim();
+  if(!/^\d{4}$/.test(pin)){err.textContent='Enter exactly 4 digits.';return;}
+  if(pin!==String(sfvtuGet(SFVTU_KEYS.transactionPin,''))){err.textContent='Incorrect transaction PIN. Please try again.';input.value='';input.focus();return;}
+  const btn=e.target.querySelector('button'); btn.disabled=true; btn.textContent='Processing...';
+  setTimeout(()=>{
+   try{
+    let tx;
+    if(pending.type==='data') tx=purchaseData({network:pending.network,phone:pending.phone,plan:pending.plan});
+    else tx=purchaseAirtime({network:pending.network,phone:pending.phone,amount:pending.amount});
+    const receiptTx={...tx,network:pending.network,phone:pending.phone,...(pending.plan?{plan:`${pending.plan.size} — ${pending.plan.validity}`}:{})};
+    clearPendingPurchase(); saveReceipt({heading:pending.type==='data'?'Data Purchase Successful':'Airtime Purchase Successful',tx:receiptTx,amount:pending.amount,createdAt:new Date().toISOString()}); window.location.href='receipt.html';
+   }catch(error){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-lock"></i> Continue';err.textContent=error.message||'Transaction could not be completed.';}
+  },700);
+ });
+}
+</script></body></html>
