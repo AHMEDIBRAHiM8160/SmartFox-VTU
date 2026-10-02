@@ -5,6 +5,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const healthRouter = require('./routes/health');
+const authRouter = require('./routes/auth');
+const walletRouter = require('./routes/wallet');
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -26,6 +28,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/wallet', walletRouter);
 
 app.use((req, res) => {
   res.status(404).json({

@@ -25,7 +25,43 @@ function fundWallet(amount, method) {
 let sfvtuSelectedAmount = null;
 
 function initWalletPage() {
-  bindBalanceToggle('wallet-balance-toggle', 'wallet-balance-amt', () => getWallet().balance);
+  let walletPageBalance = 0;
+
+  const updateWalletBalance = bindBalanceToggle(
+    'wallet-balance-toggle',
+    'wallet-balance-amt',
+    () => walletPageBalance
+  );
+
+  async function loadWalletBalance() {
+    const session = sfvtuGet(SFVTU_KEYS.session, null);
+
+    if (!session || !session.token) {
+      console.error('Wallet: No authenticated session found.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/wallet', {
+        headers: {
+          Authorization: `Bearer ${session.token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Could not load wallet.');
+      }
+
+      walletPageBalance = Number(result.wallet.balance);
+      updateWalletBalance();
+    } catch (error) {
+      console.error('Wallet balance error:', error.message);
+    }
+  }
+
+  loadWalletBalance();
   const idEl = document.getElementById('wallet-id');
   if (idEl) idEl.textContent = maskedWalletId();
 
@@ -54,16 +90,10 @@ function initWalletPage() {
       if (!amount || amount < 100) { toast('Enter a valid amount (min ₦100).', 'error'); return; }
       if (!method) { toast('Select a payment method.', 'error'); return; }
 
-      const btn = form.querySelector('button[type="submit"]');
-      btn.disabled = true; btn.textContent = 'Processing...';
-      setTimeout(() => {
-        const tx = fundWallet(amount, method);
-        showFundSuccessModal(tx, amount);
-        btn.disabled = false; btn.textContent = 'Continue';
-        form.reset();
-        renderWalletHistory();
-        bindBalanceToggle('wallet-balance-toggle', 'wallet-balance-amt', () => getWallet().balance);
-      }, 900);
+      toast(
+        'Wallet funding is not available yet. Payment gateway integration is pending.',
+        'error'
+      );
     });
   }
 

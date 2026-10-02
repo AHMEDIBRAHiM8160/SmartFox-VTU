@@ -58,7 +58,43 @@
   renderAppShell('dashboard', `Welcome back, ${(currentUser() || {}).fullName ? (currentUser().fullName.split(' ')[0]) : 'there'} 👋`, 'Here\'s what\'s happening with your account today.');
   document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('dashboard-content').innerHTML;
 
-  bindBalanceToggle('dash-balance-toggle', 'dash-balance', () => getWallet().balance);
+  let dashboardBalance = 0;
+
+  const updateDashBalance = bindBalanceToggle(
+    'dash-balance-toggle',
+    'dash-balance',
+    () => dashboardBalance
+  );
+
+  async function loadDashboardWallet() {
+    const session = sfvtuGet(SFVTU_KEYS.session, null);
+
+    if (!session || !session.token) {
+      console.error('Wallet: No authenticated session found.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/wallet', {
+        headers: {
+          Authorization: `Bearer ${session.token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Could not load wallet.');
+      }
+
+      dashboardBalance = Number(result.wallet.balance);
+      updateDashBalance();
+    } catch (error) {
+      console.error('Dashboard wallet error:', error.message);
+    }
+  }
+
+  loadDashboardWallet();
 
   const txIcons = { Airtime: '<i class=\"fa-solid fa-mobile-screen-button\"></i>', Data: '<i class=\"fa-solid fa-wifi\"></i>', 'School Fees': '<i class=\"fa-solid fa-graduation-cap\"></i>', Wallet: '<i class=\"fa-solid fa-wallet\"></i>' };
   const txColors = { Airtime: 'icon-indigo', Data: 'icon-orange', 'School Fees': 'icon-green', Wallet: 'icon-indigo' };

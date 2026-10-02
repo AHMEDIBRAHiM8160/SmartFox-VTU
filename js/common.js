@@ -34,13 +34,27 @@ function setBalanceHidden(v) { sfvtuSet(SFVTU_KEYS.balanceHidden, v); }
 function bindBalanceToggle(toggleBtnId, amountElId, getRawAmount) {
   const btn = document.getElementById(toggleBtnId);
   const amountEl = document.getElementById(amountElId);
-  if (!btn || !amountEl) return;
+
+  if (!btn || !amountEl) return () => {};
+
   const update = () => {
-    amountEl.textContent = isBalanceHidden() ? '₦ • • • • • •' : formatNaira(getRawAmount());
-    btn.innerHTML = isBalanceHidden() ? '<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>' : '<i class="fa-solid fa-eye" aria-hidden="true"></i>'; 
+    amountEl.textContent = isBalanceHidden()
+      ? '₦ • • • • • •'
+      : formatNaira(getRawAmount());
+
+    btn.innerHTML = isBalanceHidden()
+      ? '<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>'
+      : '<i class="fa-solid fa-eye" aria-hidden="true"></i>';
   };
+
   update();
-  btn.addEventListener('click', () => { setBalanceHidden(!isBalanceHidden()); update(); });
+
+  btn.addEventListener('click', () => {
+    setBalanceHidden(!isBalanceHidden());
+    update();
+  });
+
+  return update;
 }
 
 function maskedWalletId() {

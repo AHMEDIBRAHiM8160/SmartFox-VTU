@@ -1,100 +1,222 @@
 /* ============================================
-   Smart Fox VTU — Auth (auth.js)
-   Simulated for now. Swap the bodies of
-   registerUser()/loginUser() for calls to
-   POST /api/auth/register and /api/auth/login
-   when the backend is ready.
+   Smart Fox VTU — Real API Authentication
    ============================================ */
 
-function registerUser({ fullName, email, phone, password }) {
-  const user = { fullName, email, phone, createdAt: new Date().toISOString() };
+const SFVTU_API_BASE = 'http://localhost:5000/api';
+
+async function authRequest(endpoint, payload) {
+  const response = await fetch(`${SFVTU_API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'An error occurred. Please try again.');
+  }
+
+  return data;
+}
+
+function saveAuthSession(data) {
+  const user = data.user;
+
   sfvtuSet(SFVTU_KEYS.user, user);
-  sfvtuSet(SFVTU_KEYS.wallet, { balance: 25000 }); // dummy starter balance
-  sfvtuSet(SFVTU_KEYS.session, { email, loggedInAt: new Date().toISOString() });
+
+  sfvtuSet(SFVTU_KEYS.session, {
+    userId: user.id,
+    email: user.email,
+    token: data.token,
+    loggedInAt: new Date().toISOString()
+  });
+
+  // Remove any old simulated wallet balance.
+  localStorage.removeItem(SFVTU_KEYS.wallet);
+
   localStorage.removeItem(SFVTU_KEYS.transactionPin);
   localStorage.removeItem(SFVTU_KEYS.onboardingDone);
+
   return user;
 }
 
-function loginUser({ identifier, password }) {
-  // Simulated authentication — any credentials succeed once a user record exists,
-  // otherwise a fresh dummy account is created so the demo always works.
-  let user = currentUser();
-  if (!user) {
-    user = { fullName: 'Ahmed Yusuf', email: identifier.includes('@') ? identifier : 'ahmed@example.com', phone: identifier.includes('@') ? '08012345678' : identifier, createdAt: new Date().toISOString() };
-    sfvtuSet(SFVTU_KEYS.user, user);
-    if (!localStorage.getItem(SFVTU_KEYS.wallet)) sfvtuSet(SFVTU_KEYS.wallet, { balance: 25000 });
-  }
-  sfvtuSet(SFVTU_KEYS.session, { email: user.email, loggedInAt: new Date().toISOString() });
-  return user;
+async function registerUser({ fullName, email, phone, password }) {
+  const data = await authRequest('/auth/register', {
+    fullName,
+    email,
+    phone,
+    password
+  });
+
+  return saveAuthSession(data);
+}
+
+async function loginUser({ identifier, password }) {
+  const data = await authRequest('/auth/login', {
+    identifier,
+    password
+  });
+
+  return saveAuthSession(data);
 }
 
 /* ---------- Register page binding ---------- */
+
 function bindRegisterForm() {
   const form = document.getElementById('register-form');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const fullName = form.elements.namedItem('fullName').value.trim();
+    const email = form.elements.namedItem('email').value.trim();
+    const phone = form.elements.namedItem('phone').value.trim();
+    const password = form.elements.namedItem('password').value;
+    const confirmPassword =
+      form.elements.namedItem('confirmPassword').value;
+
     let valid = true;
 
-    const fullName = form.fullName.value.trim();
-    const email = form.email.value.trim();
-    const phone = form.phone.value.trim();
-    const password = form.password.value;
-    const confirmPassword = form.confirmPassword.value;
+    valid =
+      setFieldValidity(
+        'reg-fullname',
+        fullName.length >= 3,
+        'Enter your full name.'
+      ) && valid;
 
-    valid = setFieldValidity('reg-fullname', fullName.length >= 3, 'Enter your full name.') && valid;
-    valid = setFieldValidity('reg-email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Enter a valid email address.') && valid;
-    valid = setFieldValidity('reg-phone', /^0\d{10}$/.test(phone), 'Enter a valid 11-digit phone number.') && valid;
-    valid = setFieldValidity('reg-password', password.length >= 6, 'Password must be at least 6 characters.') && valid;
-    valid = setFieldValidity('reg-confirm', confirmPassword === password && confirmPassword.length > 0, 'Passwords do not match.') && valid;
+    valid =
+      setFieldValidity(
+        'reg-email',
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+        'Enter a valid email address.'
+      ) && valid;
+
+    valid =
+      setFieldValidity(
+        'reg-phone',
+        /^0\d{10}$/.test(phone),
+        'Enter a valid 11-digit phone number.'
+      ) && valid;
+
+    valid =
+      setFieldValidity(
+        'reg-password',
+        password.length >= 8 && password.length <= 72,
+        'Password must be 8–72 characters.'
+      ) && valid;
+
+    valid =
+      setFieldValidity(
+        'reg-confirm',
+        confirmPassword === password && confirmPassword.length > 0,
+        'Passwords do not match.'
+      ) && valid;
 
     if (!valid) return;
 
-    registerUser({ fullName, email, phone, password });
-    toast('Account created successfully!', 'success');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      await registerUser({ fullName, email, phone, password });
+
+      toast('Account created successfully!', 'success');
+
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 700);
+    } catch (error) {
+      toast(error.message || 'Registration failed.', 'error');
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
   });
 }
 
 /* ---------- Login page binding ---------- */
+
 function bindLoginForm() {
   const form = document.getElementById('login-form');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    let valid = true;
-    const identifier = form.identifier.value.trim();
-    const password = form.password.value;
 
-    valid = setFieldValidity('login-id', identifier.length > 2, 'Enter your email or phone number.') && valid;
-    valid = setFieldValidity('login-password', password.length > 0, 'Enter your password.') && valid;
+    const identifier =
+      form.elements.namedItem('identifier').value.trim();
+
+    const password =
+      form.elements.namedItem('password').value;
+
+    let valid = true;
+
+    valid =
+      setFieldValidity(
+        'login-id',
+        identifier.length > 2,
+        'Enter your email or phone number.'
+      ) && valid;
+
+    valid =
+      setFieldValidity(
+        'login-password',
+        password.length > 0,
+        'Enter your password.'
+      ) && valid;
 
     if (!valid) return;
 
-    loginUser({ identifier, password });
-    toast('Welcome back!', 'success');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      await loginUser({ identifier, password });
+
+      toast('Welcome back!', 'success');
+
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 500);
+    } catch (error) {
+      toast(error.message || 'Login failed.', 'error');
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
   });
 }
+
+/* ---------- Form validation helpers ---------- */
 
 function setFieldValidity(fieldId, isValid, message) {
   const el = document.getElementById(fieldId);
   if (!el) return true;
+
   const errorEl = el.querySelector('.field-error');
+
   if (!isValid) {
     el.classList.add('invalid');
     if (errorEl) errorEl.textContent = message;
   } else {
     el.classList.remove('invalid');
+    if (errorEl) errorEl.textContent = '';
   }
+
   return isValid;
 }
 
 function togglePasswordField(inputId, btn) {
   const input = document.getElementById(inputId);
-  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
-  else { input.type = 'password'; btn.textContent = 'Show'; }
+  if (!input) return;
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
 }
