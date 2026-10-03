@@ -82,19 +82,69 @@ function initWalletPage() {
   }
 
   const form = document.getElementById('fund-wallet-form');
-  if (form) {
-    form.addEventListener('submit', (e) => {
+    if (form) {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
       const amount = Number(amountInput.value);
       const method = document.getElementById('fund-method').value;
-      if (!amount || amount < 100) { toast('Enter a valid amount (min ₦100).', 'error'); return; }
-      if (!method) { toast('Select a payment method.', 'error'); return; }
+      const session = sfvtuGet(SFVTU_KEYS.session, null);
 
-      toast(
-        'Wallet funding is not available yet. Payment gateway integration is pending.',
-        'error'
-      );
+      if (!amount || amount < 100) {
+        toast('Enter a valid amount (min ₦100).', 'error');
+        return;
+      }
+
+      if (!session || !session.token) {
+        toast('Please login again.', 'error');
+        return;
+      }
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      const originalText = submitButton ? submitButton.textContent : '';
+
+      try {
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Processing...';
+        }
+
+        const response = await fetch(
+          'http://localhost:5000/api/paystack/initialize',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.token}`
+            },
+            body: JSON.stringify({ amount })
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || 'Could not initialize payment.'
+          );
+        }
+
+        if (!result.payment?.authorizationUrl) {
+          throw new Error('Paystack checkout URL was not returned.');
+        }
+
+        window.location.href = result.payment.authorizationUrl;
+      } catch (error) {
+        console.error('Wallet funding error:', error);
+        toast(error.message || 'Could not start payment.', 'error');
+
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalText;
+        }
+      }
     });
+  }
   }
 
   renderWalletHistory();
