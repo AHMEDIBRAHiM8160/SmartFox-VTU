@@ -40,7 +40,8 @@ async function initializeTransaction({
   amount,
   reference,
   currency = 'NGN',
-  metadata
+  metadata,
+  callback_url
 }) {
   return paystackRequest('/transaction/initialize', {
     method: 'POST',

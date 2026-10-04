@@ -1,26 +1,7 @@
 /* ============================================
    Smart Fox VTU — Wallet (wallet.js)
-   fundWallet() currently writes to localStorage.
-   Later: POST /api/wallet/fund
+   Wallet funding uses Paystack through the backend.
    ============================================ */
-
-function fundWallet(amount, method) {
-  const wallet = getWallet();
-  const newBalance = wallet.balance + amount;
-  setWalletBalance(newBalance);
-  const tx = {
-    ref: generateRef('WLT'),
-    service: 'Wallet',
-    description: `Wallet Funding via ${method}`,
-    amount,
-    type: 'credit',
-    date: new Date().toISOString(),
-    status: 'success'
-  };
-  addTransaction(tx);
-  addNotification('Your wallet has been funded successfully.');
-  return tx;
-}
 
 let sfvtuSelectedAmount = null;
 
@@ -61,7 +42,61 @@ function initWalletPage() {
     }
   }
 
+  async function verifyPaystackCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+
+    if (!reference) return;
+
+    const session = sfvtuGet(SFVTU_KEYS.session, null);
+
+    if (!session || !session.token) {
+      toast('Please login again to verify your payment.', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/paystack/verify/${encodeURIComponent(reference)}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.token}`
+          }
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Could not verify payment.'
+        );
+      }
+
+      await loadWalletBalance();
+
+      toast(
+        result.message || 'Payment verified successfully.',
+        'success'
+      );
+
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      );
+    } catch (error) {
+      console.error('Paystack verification error:', error);
+      toast(
+        error.message || 'Payment verification failed.',
+        'error'
+      );
+    }
+  }
+
   loadWalletBalance();
+  verifyPaystackCallback();
   const idEl = document.getElementById('wallet-id');
   if (idEl) idEl.textContent = maskedWalletId();
 
@@ -145,42 +180,57 @@ function initWalletPage() {
       }
     });
   }
-  }
 
   renderWalletHistory();
 }
 
-function showFundSuccessModal(tx, amount) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <div class="receipt-status">
-        <div class="check">✓</div>
-        <h3>Wallet Funded!</h3>
-      </div>
-      <div class="modal-row"><span>Reference</span><span>${tx.ref}</span></div>
-      <div class="modal-row"><span>Amount</span><span>${formatNaira(amount)}</span></div>
-      <div class="modal-row"><span>New Balance</span><span>${formatNaira(getWallet().balance)}</span></div>
-      <div class="modal-row"><span>Status</span><span class="badge badge-success">Successful</span></div>
-      <div class="modal-actions">
-        <button class="btn btn-primary btn-block" id="fund-modal-close">Done</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  document.getElementById('fund-modal-close').addEventListener('click', () => overlay.remove());
-}
-
-function renderWalletHistory() {
+async function renderWalletHistory() {
   const container = document.getElementById('wallet-history-body');
   if (!container) return;
-  const rows = getTransactions().filter(t => t.service === 'Wallet' || t.type === 'debit');
-  container.innerHTML = rows.slice(0, 12).map(t => `
-    <tr>
-      <td>${t.ref}</td>
-      <td>${t.description}</td>
-      <td>${t.type === 'credit' ? '+' : '-'}${formatNaira(t.amount)}</td>
-      <td>${formatDate(t.date)}</td>
-      <td><span class="badge badge-${t.status === 'success' ? 'success' : t.status}">${t.status[0].toUpperCase() + t.status.slice(1)}</span></td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">No wallet activity yet.</td></tr>';
+
+  const session = sfvtuGet(SFVTU_KEYS.session, null);
+
+  if (!session || !session.token) {
+    container.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">Please login again.</td></tr>';
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/wallet/transactions', {
+      headers: {
+        Authorization: `Bearer ${session.token}`
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Could not load wallet history.');
+    }
+
+    const rows = result.transactions || [];
+
+    container.innerHTML = rows.slice(0, 12).map(t => {
+      const isCredit = t.type === 'funding' || t.type === 'refund';
+      const status = t.status === 'successful' ? 'success' : t.status;
+
+      return `
+        <tr>
+          <td>${t.reference}</td>
+          <td>${t.description || t.type}</td>
+          <td>${isCredit ? '+' : '-'}${formatNaira(t.amount)}</td>
+          <td>${formatDate(t.date)}</td>
+          <td>
+            <span class="badge badge-${status}">
+              ${status[0].toUpperCase() + status.slice(1)}
+            </span>
+          </td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">No wallet activity yet.</td></tr>';
+
+  } catch (error) {
+    console.error('Wallet history error:', error);
+    container.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">Could not load wallet activity.</td></tr>';
+  }
 }
+

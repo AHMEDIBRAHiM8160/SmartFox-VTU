@@ -116,6 +116,7 @@ router.post('/initialize', authenticateToken, async (req, res) => {
       amount: amountKobo,
       currency: 'NGN',
       reference,
+      callback_url: 'http://127.0.0.1:5500/wallet.html',
       metadata: {
         user_id: String(req.userId),
         wallet_id: String(wallets[0].id),

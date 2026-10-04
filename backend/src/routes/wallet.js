@@ -82,4 +82,49 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/wallet/transactions
+router.get('/transactions', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT
+         id,
+         type,
+         amount,
+         balance_before,
+         balance_after,
+         reference,
+         description,
+         status,
+         created_at
+       FROM wallet_transactions
+       WHERE user_id = ?
+       ORDER BY created_at DESC, id DESC
+       LIMIT 50`,
+      [req.userId]
+    );
+
+    return res.json({
+      success: true,
+      transactions: rows.map(row => ({
+        id: row.id,
+        type: row.type,
+        amount: Number(row.amount),
+        balanceBefore: Number(row.balance_before),
+        balanceAfter: Number(row.balance_after),
+        reference: row.reference,
+        description: row.description,
+        status: row.status,
+        date: row.created_at
+      }))
+    });
+  } catch (error) {
+    console.error('Wallet transactions lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve wallet transactions.'
+    });
+  }
+});
+
 module.exports = router;
