@@ -1,53 +1,13 @@
 const express = require('express');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-
 const { pool } = require('../config/db');
+const { authenticateToken } = require('../middleware/auth');
 const {
   initializeTransaction,
   verifyTransaction
 } = require('../services/paystack');
 
 const router = express.Router();
-
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const [scheme, token] = authHeader.split(' ');
-
-  if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required.'
-    });
-  }
-
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({
-      success: false,
-      message: 'Authentication is not configured.'
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = Number(decoded.sub);
-
-    if (!Number.isSafeInteger(userId) || userId < 1) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid authentication token.'
-      });
-    }
-
-    req.userId = userId;
-    next();
-  } catch {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid or expired authentication token.'
-    });
-  }
-}
 
 // POST /api/paystack/initialize
 router.post('/initialize', authenticateToken, async (req, res) => {
