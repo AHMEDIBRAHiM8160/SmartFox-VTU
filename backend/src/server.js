@@ -8,6 +8,7 @@ const healthRouter = require('./routes/health');
 const authRouter = require('./routes/auth');
 const walletRouter = require('./routes/wallet');
 const paystackRouter = require('./routes/paystack');
+const { checkDatabaseConnection } = require('./config/db');
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -53,6 +54,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Smart Fox VTU API running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await checkDatabaseConnection();
+    console.log('Database connection: OK');
+
+    app.listen(PORT, () => {
+      console.log(`Smart Fox VTU API running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    process.exit(1);
+  }
+}
+
+startServer();
