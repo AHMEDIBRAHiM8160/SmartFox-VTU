@@ -8,6 +8,7 @@ const healthRouter = require('./routes/health');
 const authRouter = require('./routes/auth');
 const walletRouter = require('./routes/wallet');
 const paystackRouter = require('./routes/paystack');
+const transactionsRouter = require('./routes/transactions');
 const { checkDatabaseConnection } = require('./config/db');
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/wallet', walletRouter);
 app.use('/api/paystack', paystackRouter);
+app.use('/api/transactions', transactionsRouter);
 
 app.use((req, res) => {
   res.status(404).json({
