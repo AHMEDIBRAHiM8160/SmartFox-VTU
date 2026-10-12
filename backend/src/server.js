@@ -9,6 +9,8 @@ const authRouter = require('./routes/auth');
 const walletRouter = require('./routes/wallet');
 const paystackRouter = require('./routes/paystack');
 const transactionsRouter = require('./routes/transactions');
+const airtimeRouter = require('./routes/airtime');
+const adminRouter = require('./routes/admin');
 const { checkDatabaseConnection } = require('./config/db');
 
 const app = express();
@@ -40,6 +42,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/wallet', walletRouter);
 app.use('/api/paystack', paystackRouter);
 app.use('/api/transactions', transactionsRouter);
+app.use('/api/airtime', airtimeRouter);
+app.use('/api/admin', adminRouter);
 
 app.use((req, res) => {
   res.status(404).json({

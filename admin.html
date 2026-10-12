@@ -22,7 +22,7 @@
       </a>
       <button class="admin-close" id="adminClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="admin-role"><span class="role-avatar">AD</span><div><strong>Administrator</strong><small>Platform control</small></div></div>
+    <div class="admin-role"><span class="role-avatar">AD</span><div><strong id="admin-sidebar-name">Administrator</strong><small id="admin-sidebar-role">Platform control</small></div></div>
     <nav class="admin-nav" aria-label="Admin navigation">
       <button class="admin-nav-link active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Overview</span></button>
       <button class="admin-nav-link" data-section="users"><i class="fa-solid fa-users"></i><span>Users</span><b id="nav-users-count">1,248</b></button>
@@ -34,7 +34,7 @@
     </nav>
     <div class="admin-sidebar-bottom">
       <a href="dashboard.html"><i class="fa-solid fa-arrow-left"></i> Customer view</a>
-      <a href="index.html" class="admin-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      <a href="#" class="admin-logout" id="adminLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
   </aside>
 
@@ -47,7 +47,7 @@
       <div class="admin-top-actions">
         <div class="admin-global-search"><i class="fa-solid fa-magnifying-glass"></i><input id="globalAdminSearch" type="search" placeholder="Search users or references..."></div>
         <button class="admin-icon-btn" title="Notifications" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="admin-alert-dot"></span></button>
-        <div class="admin-profile"><span class="role-avatar small">AD</span><div><strong>Admin</strong><small>Super admin</small></div><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="admin-profile"><span class="role-avatar small">AD</span><div><strong id="admin-profile-name">Admin</strong><small id="admin-profile-role">Super admin</small></div><i class="fa-solid fa-chevron-down"></i></div>
       </div>
     </header>
 
@@ -55,7 +55,7 @@
       <!-- OVERVIEW -->
       <section class="admin-section active" id="section-overview">
         <div class="admin-welcome">
-          <div><span class="eyebrow-pill"><i class="fa-solid fa-shield-halved"></i> Secure control center</span><h2>Good morning, Admin.</h2><p>Monitor Smart Fox VTU activity, services, wallets and platform performance from one place.</p></div>
+          <div><span class="eyebrow-pill"><i class="fa-solid fa-shield-halved"></i> Secure control center</span><h2 id="admin-welcome-title">Good morning, Admin.</h2><p>Monitor Smart Fox VTU activity, services, wallets and platform performance from one place.</p></div>
           <div class="admin-welcome-art"><img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU logo"><span>Smart payments.<br><strong>Simple life.</strong></span></div>
         </div>
 
@@ -86,9 +86,9 @@
           <article class="admin-card alerts-card">
             <div class="admin-card-head"><div><h3>Attention needed</h3><p>Items that may require review</p></div></div>
             <div class="attention-list">
-              <div><span class="attention-icon warning"><i class="fa-solid fa-clock"></i></span><div><strong>110 pending transactions</strong><small>Review pending service requests.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
-              <div><span class="attention-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>128 failed transactions</strong><small>Check failures and refund cases.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
-              <div><span class="attention-icon blue"><i class="fa-solid fa-user-clock"></i></span><div><strong>6 new users today</strong><small>Monitor new account activity.</small></div><button class="text-btn" data-section-jump="users">Open</button></div>
+              <div><span class="attention-icon warning"><i class="fa-solid fa-clock"></i></span><div><strong><span id="attention-pending-count">—</span> pending transactions</strong><small>Review pending service requests.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
+              <div><span class="attention-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong><span id="attention-failed-count">—</span> failed transactions</strong><small>Check failures and refund cases.</small></div><button class="text-btn" data-section-jump="transactions">Review</button></div>
+              <div><span class="attention-icon blue"><i class="fa-solid fa-user-clock"></i></span><div><strong><span id="attention-new-users-count">—</span> new users today</strong><small>Monitor new account activity.</small></div><button class="text-btn" data-section-jump="users">Open</button></div>
             </div>
           </article>
         </div>
@@ -115,8 +115,25 @@
       <!-- WALLETS -->
       <section class="admin-section" id="section-wallets">
         <div class="section-toolbar"><div><h2>Wallet Activities</h2><p>Monitor customer wallet funding, debits, credits and refunds.</p></div><button class="admin-primary-btn" id="exportWallets"><i class="fa-solid fa-download"></i> Export</button></div>
-        <div class="admin-stat-grid compact"><article class="admin-stat-card"><div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div><div><span>Total wallet balance</span><strong>₦8.42M</strong><small>Across customer wallets</small></div></article><article class="admin-stat-card"><div class="stat-icon green"><i class="fa-solid fa-arrow-down"></i></div><div><span>Today's funding</span><strong>₦420K</strong><small>56 successful credits</small></div></article><article class="admin-stat-card"><div class="stat-icon orange"><i class="fa-solid fa-arrow-up"></i></div><div><span>Today's spending</span><strong>₦318K</strong><small>Utility purchases</small></div></article><article class="admin-stat-card"><div class="stat-icon purple"><i class="fa-solid fa-rotate-left"></i></div><div><span>Refunds pending</span><strong>₦36K</strong><small>12 cases</small></div></article></div>
-        <div class="admin-card table-card"><div class="admin-card-head"><div><h3>Recent wallet ledger</h3><p>Demo records ready for backend integration.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Reference</th><th>User</th><th>Type</th><th>Amount</th><th>Balance after</th><th>Status</th></tr></thead><tbody id="walletTable"></tbody></table></div></div>
+        <div class="admin-stat-grid compact">
+          <article class="admin-stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div>
+            <div><span>Total wallet balance</span><strong id="walletStatTotal">₦0.00</strong><small>Across customer wallets</small></div>
+          </article>
+          <article class="admin-stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-arrow-down"></i></div>
+            <div><span>Today's funding</span><strong id="walletStatFunding">₦0.00</strong><small id="walletStatFundingCount">0 successful credits today</small></div>
+          </article>
+          <article class="admin-stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-arrow-up"></i></div>
+            <div><span>Today's spending</span><strong id="walletStatSpending">₦0.00</strong><small>Successful purchases today</small></div>
+          </article>
+          <article class="admin-stat-card">
+            <div class="stat-icon purple"><i class="fa-solid fa-rotate-left"></i></div>
+            <div><span>Refunds pending</span><strong id="walletStatRefunds">₦0.00</strong><small id="walletStatRefundCount">0 pending cases</small></div>
+          </article>
+        </div>
+        <div class="admin-card table-card"><div class="admin-card-head"><div><h3>Recent wallet ledger</h3><p>Latest customer wallet transactions from the database.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Reference</th><th>User</th><th>Type</th><th>Amount</th><th>Balance after</th><th>Status</th></tr></thead><tbody id="walletTable"></tbody></table></div></div>
       </section>
 
       <!-- SERVICES -->
@@ -128,8 +145,29 @@
       <!-- REPORTS -->
       <section class="admin-section" id="section-reports">
         <div class="section-toolbar"><div><h2>Reports</h2><p>High-level performance summaries for Smart Fox VTU.</p></div><button class="admin-primary-btn" id="exportReport"><i class="fa-solid fa-file-export"></i> Export report</button></div>
-        <div class="report-grid"><article class="admin-card report-highlight"><span>Total service volume</span><strong>₦2,570,000</strong><small>Illustrative demo value</small><div class="report-line"><i style="width:78%"></i></div></article><article class="admin-card report-highlight"><span>Successful transactions</span><strong>3,324</strong><small>93.8% of all transactions</small><div class="report-line"><i style="width:94%"></i></div></article><article class="admin-card report-highlight"><span>Active users</span><strong>1,206</strong><small>96.6% of registered users</small><div class="report-line"><i style="width:97%"></i></div></article></div>
-        <div class="admin-overview-grid"><article class="admin-card"><div class="admin-card-head"><div><h3>Service breakdown</h3><p>Illustrative distribution</p></div></div><div class="breakdown-list"><div><span><i class="fa-solid fa-wifi"></i> Data</span><strong>46.7%</strong><div><i style="width:47%"></i></div></div><div><span><i class="fa-solid fa-mobile-screen-button"></i> Airtime</span><strong>20.2%</strong><div><i style="width:20%"></i></div></div><div><span><i class="fa-solid fa-graduation-cap"></i> School Fees</span><strong>33.1%</strong><div><i style="width:33%"></i></div></div></div></article><article class="admin-card"><div class="admin-card-head"><div><h3>Platform notes</h3><p>Milestone 1</p></div></div><ul class="report-notes"><li><i class="fa-solid fa-circle-check"></i> Frontend service architecture is ready.</li><li><i class="fa-solid fa-circle-check"></i> Admin controls are represented with demo data.</li><li><i class="fa-solid fa-circle-info"></i> Real analytics will come from MySQL later.</li></ul></article></div>
+        <div class="report-grid">
+          <article class="admin-card report-highlight"><span>Total service volume</span><strong id="reportTotalVolume">Loading...</strong><small>Successful Airtime, Data and School Fees</small><div class="report-line"><i id="reportVolumeBar" style="width:0%"></i></div></article>
+          <article class="admin-card report-highlight"><span>Successful transactions</span><strong id="reportSuccessfulTransactions">Loading...</strong><small id="reportSuccessCaption">Loading transaction rate...</small><div class="report-line"><i id="reportSuccessBar" style="width:0%"></i></div></article>
+          <article class="admin-card report-highlight"><span>Active users</span><strong id="reportActiveUsers">Loading...</strong><small id="reportActiveCaption">Loading active-user rate...</small><div class="report-line"><i id="reportActiveBar" style="width:0%"></i></div></article>
+        </div>
+        <div class="admin-overview-grid">
+          <article class="admin-card">
+            <div class="admin-card-head"><div><h3>Service breakdown</h3><p>Share of successful service volume</p></div></div>
+            <div class="breakdown-list">
+              <div><span><i class="fa-solid fa-wifi"></i> Data</span><strong id="reportDataPercent">0%</strong><div><i id="reportDataBar" style="width:0%"></i></div></div>
+              <div><span><i class="fa-solid fa-mobile-screen-button"></i> Airtime</span><strong id="reportAirtimePercent">0%</strong><div><i id="reportAirtimeBar" style="width:0%"></i></div></div>
+              <div><span><i class="fa-solid fa-graduation-cap"></i> School Fees</span><strong id="reportSchoolFeesPercent">0%</strong><div><i id="reportSchoolFeesBar" style="width:0%"></i></div></div>
+            </div>
+          </article>
+          <article class="admin-card">
+            <div class="admin-card-head"><div><h3>Platform notes</h3><p>Live report data</p></div></div>
+            <ul class="report-notes">
+              <li><i class="fa-solid fa-circle-check"></i> Figures are loaded from the authenticated backend.</li>
+              <li><i class="fa-solid fa-circle-check"></i> Service volume includes successful Airtime, Data and School Fees only.</li>
+              <li><i class="fa-solid fa-circle-info"></i> Export report downloads the loaded analytics.</li>
+            </ul>
+          </article>
+        </div>
       </section>
 
       <!-- SETTINGS -->
@@ -143,6 +181,7 @@
 <div class="admin-overlay" id="adminOverlay"></div>
 <div class="toast-stack" id="adminToastStack"></div>
 <script src="js/common.js"></script>
+<script src="js/admin-auth.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

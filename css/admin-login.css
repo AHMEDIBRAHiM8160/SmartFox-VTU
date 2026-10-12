@@ -1,0 +1,51 @@
+.admin-auth-page .auth-box {
+  position: relative;
+}
+
+.admin-login-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(7, 20, 47, 0.08);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-login-badge i {
+  font-size: 14px;
+}
+
+.admin-login-security {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255,255,255,.78);
+  font-size: 13px;
+}
+
+.admin-login-security i {
+  color: #7dd3fc;
+}
+
+.admin-login-message {
+  margin: 0 0 16px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.admin-login-message.error {
+  background: #fff1f2;
+  color: #b42318;
+  border: 1px solid #fecdd3;
+}
+
+#admin-login-btn:disabled {
+  opacity: .7;
+  cursor: wait;
+}

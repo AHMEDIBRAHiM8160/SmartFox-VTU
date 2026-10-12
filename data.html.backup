@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<title>Buy Data — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="app-shell" id="sfvtu-shell"></div>
+
+<template id="data-content">
+  <div class="form-panel" style="max-width:640px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span style="font-size:0.85rem;color:var(--text-muted);">Wallet Balance</span>
+      <strong id="data-balance">₦0.00</strong>
+    </div>
+    <div class="field">
+      <label>Choose Network</label>
+      <div class="network-grid" id="data-network-grid"></div>
+    </div>
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" id="data-phone" placeholder="Enter phone number (e.g. 08012345678)" />
+    </div>
+    <div id="data-plans-wrap" class="hidden">
+      <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:10px;">Available Data Plans</label>
+      <div class="data-category-tabs" id="data-category-tabs"></div>
+      <div class="plan-grid" id="data-plan-grid"></div>
+    </div>
+  </div>
+</template>
+
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script src="js/airtime.js"></script>
+<script>
+  requireAuth();
+  renderAppShell('data', 'Buy Data', 'Choose a network, enter the recipient number, then select a data plan to continue.');
+  document.getElementById('sfvtu-page-content').innerHTML = document.getElementById('data-content').innerHTML;
+  initDataPage();
+</script>
+</body>
+</html>

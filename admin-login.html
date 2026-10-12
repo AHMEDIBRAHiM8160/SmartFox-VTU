@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07142f">
+<title>Admin Login — Smart Fox VTU</title>
+<link rel="icon" type="image/png" href="assets/smart-fox-brand.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/admin-login.css">
+</head>
+<body>
+<div class="auth-wrap admin-auth-page">
+
+  <div class="auth-side">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">
+        <img src="assets/smart-fox-brand-light.png" alt="Smart Fox VTU">
+      </span>
+      <span style="color:#fff;">Smart Fox <em>VTU</em></span>
+    </a>
+
+    <div>
+      <div class="quote">"Smart payments. Simple life. Secure control."</div>
+      <div class="quote-sub">
+        Authorized administrators can manage users, transactions, wallets and services from the Smart Fox VTU control center.
+      </div>
+    </div>
+
+    <div class="admin-login-security">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>Restricted administrator access</span>
+    </div>
+  </div>
+
+  <div class="auth-form-col">
+    <div class="auth-box">
+
+      <div class="admin-login-badge">
+        <i class="fa-solid fa-user-shield"></i>
+        Administrator
+      </div>
+
+      <h1>Admin Login</h1>
+      <p class="sub">Sign in to access the Smart Fox VTU control center.</p>
+
+      <div id="admin-login-error" class="admin-login-message error" hidden></div>
+
+      <form id="admin-login-form" novalidate>
+
+        <div class="field">
+          <label for="admin-email">Admin Email</label>
+          <input
+            type="email"
+            id="admin-email"
+            name="email"
+            autocomplete="username"
+            placeholder="Enter admin email"
+            required
+          />
+          <div class="field-error">Enter your admin email.</div>
+        </div>
+
+        <div class="field">
+          <label for="admin-password">Password</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="admin-password"
+              name="password"
+              autocomplete="current-password"
+              placeholder="Enter your admin password"
+              required
+            />
+            <span
+              class="pw-toggle"
+              onclick="togglePasswordField('admin-password', this)"
+            >Show</span>
+          </div>
+          <div class="field-error">Enter your admin password.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="admin-login-btn">
+          <span class="admin-login-btn-text">Login to Admin</span>
+        </button>
+
+      </form>
+
+      <div class="form-foot">
+        <a href="index.html" style="color:var(--primary);font-weight:600;">
+          <i class="fa-solid fa-arrow-left"></i> Back to Smart Fox VTU
+        </a>
+      </div>
+
+      <div class="trust-line">
+        🛡️ Admin access is protected by secure authentication.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/admin-auth.js"></script>
+</body>
+</html>

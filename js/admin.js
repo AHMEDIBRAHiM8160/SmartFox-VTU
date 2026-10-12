@@ -1,7 +1,7 @@
 /* Smart Fox VTU — Admin Dashboard frontend demo
    Milestone 1: local dummy data only. Replace the data functions with /api/admin/* later. */
 
-const ADMIN_USERS = [
+let ADMIN_USERS = [
   {name:'Ahmed Yusuf',email:'ahmed@example.com',phone:'08031234567',joined:'2026-06-02',wallet:25000,status:'Active'},
   {name:'Fatima Bello',email:'fatima.bello@example.com',phone:'08141234567',joined:'2026-06-14',wallet:18200,status:'Active'},
   {name:'Chinedu Okafor',email:'chinedu.o@example.com',phone:'07061234567',joined:'2026-07-01',wallet:4500,status:'Active'},
@@ -12,7 +12,7 @@ const ADMIN_USERS = [
   {name:'Aisha Umar',email:'aisha.u@example.com',phone:'09021234567',joined:'2026-09-18',wallet:5600,status:'Active'}
 ];
 
-const ADMIN_TX = [
+let ADMIN_TX = [
   {ref:'SFX-882914',user:'Ahmed Yusuf',service:'Data',amount:1500,date:'Sep 25, 2026 · 09:04',status:'success'},
   {ref:'SFX-114420',user:'Fatima Bello',service:'Airtime',amount:500,date:'Sep 25, 2026 · 08:52',status:'success'},
   {ref:'SFX-663012',user:'Chinedu Okafor',service:'School Fees',amount:45000,date:'Sep 25, 2026 · 08:41',status:'pending'},
@@ -23,7 +23,7 @@ const ADMIN_TX = [
   {ref:'SFX-338102',user:'Aisha Umar',service:'Data',amount:2500,date:'Sep 24, 2026 · 19:43',status:'pending'}
 ];
 
-const ADMIN_WALLET = [
+let ADMIN_WALLET = [
   {ref:'WAL-99102',user:'Ahmed Yusuf',type:'Credit',amount:10000,balance:25000,status:'success'},
   {ref:'WAL-99018',user:'Fatima Bello',type:'Debit',amount:1500,balance:18200,status:'success'},
   {ref:'WAL-98987',user:'Ibrahim Musa',type:'Credit',amount:5000,balance:7300,status:'success'},
@@ -32,7 +32,7 @@ const ADMIN_WALLET = [
   {ref:'WAL-98612',user:'Aisha Umar',type:'Credit',amount:8000,balance:5600,status:'success'}
 ];
 
-const ADMIN_SERVICES = [
+let ADMIN_SERVICES = [
   {name:'Airtime',desc:'MTN, Airtel, Glo and 9mobile airtime purchases.',icon:'fa-mobile-screen-button',active:true,provider:'VTU API'},
   {name:'Data',desc:'Network data plans and automatic fulfilment.',icon:'fa-wifi',active:true,provider:'VTU API'},
   {name:'School Fees',desc:'Education and school-fee payment services.',icon:'fa-graduation-cap',active:true,provider:'Education API'},
@@ -48,6 +48,7 @@ const SECTION_META={
   overview:['Platform Control','Admin Dashboard'],users:['Customer Management','Users'],transactions:['Financial Activity','Transactions'],wallets:['Wallet Management','Wallet Activities'],services:['Service Control','Services'],reports:['Analytics','Reports'],settings:['Configuration','Settings']
 };
 let activeTxFilter='all';
+
 
 function money(n){return formatNaira ? formatNaira(n) : '₦'+Number(n).toLocaleString('en-NG',{minimumFractionDigits:2});}
 function statusBadge(status,label){return `<span class="status-badge ${status}"><i class="fa-solid fa-circle"></i>${label||status[0].toUpperCase()+status.slice(1)}</span>`;}
@@ -75,30 +76,581 @@ function renderHealth(){
 }
 function renderMiniTx(){
   const wrap=document.getElementById('adminMiniTransactions');if(!wrap)return;
-  wrap.innerHTML=ADMIN_TX.slice(0,5).map(t=>`<div class="mini-tx"><div class="mini-tx-main"><span class="mini-tx-icon"><i class="fa-solid ${t.service==='Data'?'fa-wifi':t.service==='Airtime'?'fa-mobile-screen-button':t.service==='School Fees'?'fa-graduation-cap':'fa-wallet'}"></i></span><div><strong>${t.user}</strong><small>${t.service} · ${t.ref}</small></div></div><div class="mini-tx-amount"><strong>${money(t.amount)}</strong><small>${statusBadge(t.status)}</small></div></div>`).join('');
+  wrap.innerHTML=ADMIN_TX.slice(0,5).map(t=>`<div class="mini-tx"><div class="mini-tx-main"><span class="mini-tx-icon"><i class="fa-solid ${t.service==='Data'?'fa-wifi':t.service==='Airtime'?'fa-mobile-screen-button':t.service==='School Fees'?'fa-graduation-cap':'fa-wallet'}"></i></span><div><strong>${t.user}</strong><small>${t.service} · ${t.ref}</small></div></div><div class="mini-tx-amount"><strong>${money(t.amount)}</strong><small>${statusBadge(
+  t.status === 'successful' ? 'success' : t.status,
+  t.status === 'successful'
+    ? 'Success'
+    : t.status.replace(/^./,c=>c.toUpperCase())
+)}</small></div></div>`).join('');
 }
 function renderUsers(){
-  const body=document.getElementById('usersTable');if(!body)return;
-  const q=(document.getElementById('userSearch')?.value||'').toLowerCase().trim();const st=document.getElementById('userStatusFilter')?.value||'all';
-  const rows=ADMIN_USERS.filter(u=>(st==='all'||u.status===st)&&(!q||`${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q)));
-  body.innerHTML=rows.map(u=>`<tr><td><div class="user-cell"><span class="user-mini-avatar">${initials(u.name)}</span><div><strong>${u.name}</strong><small>${u.email}</small></div></div></td><td>${u.phone}</td><td>${u.joined}</td><td>${money(u.wallet)}</td><td>${statusBadge(u.status.toLowerCase(),u.status)}</td><td><button class="row-action" title="View user" data-user="${u.email}"><i class="fa-solid fa-arrow-up-right-from-square"></i></button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;padding:25px;color:var(--muted)">No users found.</td></tr>`;
+  const body=document.getElementById('usersTable');
+  if(!body)return;
+
+  const q=(document.getElementById('userSearch')?.value||'').toLowerCase().trim();
+  const st=document.getElementById('userStatusFilter')?.value||'all';
+
+  const rows=ADMIN_USERS.filter(u=>
+    (st==='all'||String(u.status).toLowerCase()===st) &&
+    (!q||`${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q))
+  );
+
+  body.innerHTML=rows.map(u=>{
+    const currentStatus=String(u.status||'pending').toLowerCase();
+    const nextStatus=currentStatus==='active'?'suspended':'active';
+    const actionLabel=currentStatus==='active'?'Suspend user':'Activate user';
+    const actionIcon=currentStatus==='active'
+      ?'fa-user-slash'
+      :'fa-user-check';
+
+    return `<tr>
+      <td>
+        <div class="user-cell">
+          <span class="user-mini-avatar">${initials(u.name)}</span>
+          <div>
+            <strong>${u.name}</strong>
+            <small>${u.email}</small>
+          </div>
+        </div>
+      </td>
+      <td>${u.phone}</td>
+      <td>${u.joined}</td>
+      <td>${money(u.wallet)}</td>
+      <td>${statusBadge(
+        currentStatus,
+        currentStatus.replace(/^./,c=>c.toUpperCase())
+      )}</td>
+      <td>
+        <button
+          class="row-action admin-user-status-action"
+          title="${actionLabel}"
+          data-user-id="${u.id}"
+          data-next-status="${nextStatus}"
+          data-user-name="${u.name}"
+        >
+          <i class="fa-solid ${actionIcon}"></i>
+        </button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr>
+    <td colspan="6" style="text-align:center;padding:25px;color:var(--muted)">
+      No users found.
+    </td>
+  </tr>`;
+
+  body.querySelectorAll('.admin-user-status-action').forEach(button=>{
+    button.addEventListener('click',async()=>{
+      const userId=Number(button.dataset.userId);
+      const nextStatus=button.dataset.nextStatus;
+      const userName=button.dataset.userName||'User';
+
+      if(!Number.isSafeInteger(userId)||userId<1)return;
+
+      const actionText=nextStatus==='suspended'
+        ?'suspend'
+        :'activate';
+
+      const confirmed=window.confirm(
+        `Are you sure you want to ${actionText} ${userName}?`
+      );
+
+      if(!confirmed)return;
+
+      button.disabled=true;
+
+      try{
+        const data=await adminApi(
+          `/api/admin/users/${userId}/status`,
+          {
+            method:'PATCH',
+            headers:{
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+              status:nextStatus
+            })
+          }
+        );
+
+        if(!data?.success){
+          throw new Error(data?.message||'Could not update user status.');
+        }
+
+        toast(
+          `${userName} has been ${nextStatus==='suspended'?'suspended':'activated'}.`
+        );
+
+        await loadAdminUsers();
+      }catch(error){
+        console.error('User status update failed:',error);
+        toast(
+          error.message||'Could not update user status.',
+          'info'
+        );
+        button.disabled=false;
+      }
+    });
+  });
 }
 function renderTransactions(){
   const body=document.getElementById('transactionsTable');if(!body)return;
   const q=(document.getElementById('transactionSearch')?.value||'').toLowerCase().trim();
-  const rows=ADMIN_TX.filter(t=>(activeTxFilter==='all'||t.status===activeTxFilter)&&(!q||`${t.ref} ${t.user} ${t.service}`.toLowerCase().includes(q)));
+  const rows=ADMIN_TX.filter(t=>(activeTxFilter==='all' ||
+      String(t.status).toLowerCase() === (
+        activeTxFilter === 'success'
+          ? 'successful'
+          : activeTxFilter
+      ))&&(!q||`${t.ref} ${t.user} ${t.service}`.toLowerCase().includes(q)));
   body.innerHTML=rows.map(t=>`<tr><td><strong>${t.ref}</strong></td><td>${t.user}</td><td>${t.service}</td><td>${money(t.amount)}</td><td>${t.date}</td><td>${statusBadge(t.status)}</td><td><button class="row-action" title="View transaction" data-ref="${t.ref}"><i class="fa-solid fa-eye"></i></button></td></tr>`).join('')||`<tr><td colspan="7" style="text-align:center;padding:25px;color:var(--muted)">No transactions found.</td></tr>`;
 }
+
+async function loadAdminWalletStats(){
+  try {
+    const data = await adminApi('/api/admin/wallet-stats');
+
+    if (!data?.success || !data.stats) {
+      throw new Error('Invalid wallet statistics response from server.');
+    }
+
+    const stats = data.stats;
+    const setText = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    };
+
+    setText('walletStatTotal', money(Number(stats.totalWalletBalance || 0)));
+    setText('walletStatFunding', money(Number(stats.todayFunding || 0)));
+    setText(
+      'walletStatFundingCount',
+      `${Number(stats.todayFundingCount || 0)} successful credits today`
+    );
+    setText('walletStatSpending', money(Number(stats.todaySpending || 0)));
+    setText('walletStatRefunds', money(Number(stats.pendingRefundAmount || 0)));
+    setText(
+      'walletStatRefundCount',
+      `${Number(stats.pendingRefundCount || 0)} pending cases`
+    );
+
+    return stats;
+  } catch (error) {
+    console.error('Could not load wallet statistics:', error);
+    toast(error.message || 'Could not load wallet statistics.', 'info');
+    return null;
+  }
+}
+
+async function loadAdminWallets(){
+  try {
+    const data = await adminApi('/api/admin/wallets');
+
+    if (!data?.success || !Array.isArray(data.wallets)) {
+      throw new Error('Invalid wallets response from server.');
+    }
+
+    ADMIN_WALLET = data.wallets.map(wallet => ({
+      ref: wallet.ref || '',
+      user: wallet.user || '',
+      type: String(wallet.type || '').toLowerCase() === 'credit'
+        ? 'Credit'
+        : 'Debit',
+      amount: Number(wallet.amount || 0),
+      balance: Number(wallet.balance || 0),
+      status: String(wallet.status || 'pending').toLowerCase(),
+      date: wallet.date
+        ? new Date(wallet.date).toLocaleString('en-NG')
+        : ''
+    }));
+
+    renderWallets();
+
+    return ADMIN_WALLET;
+  } catch (error) {
+    console.error('Could not load admin wallets:', error);
+    toast(
+      error.message || 'Could not load wallet activities.',
+      'info'
+    );
+    return [];
+  }
+}
+
 function renderWallets(){
   const body=document.getElementById('walletTable');if(!body)return;
   body.innerHTML=ADMIN_WALLET.map(w=>`<tr><td><strong>${w.ref}</strong></td><td>${w.user}</td><td><span style="color:${w.type==='Credit'?'var(--success)':'var(--danger)'}"><i class="fa-solid ${w.type==='Credit'?'fa-arrow-down':'fa-arrow-up'}"></i> ${w.type}</span></td><td>${money(w.amount)}</td><td>${money(w.balance)}</td><td>${statusBadge(w.status)}</td></tr>`).join('');
 }
+async function loadAdminServices(){
+  try {
+    const data = await adminApi('/api/admin/services');
+
+    if (!data?.success || !Array.isArray(data.services)) {
+      throw new Error('Invalid services response from server.');
+    }
+
+    ADMIN_SERVICES = data.services.map(service => {
+      const existing = ADMIN_SERVICES.find(
+        item => item.key === service.key
+      );
+
+      return {
+        id: Number(service.id),
+        key: service.key || '',
+        name: service.name || '',
+        desc: service.description || '',
+        icon: existing?.icon || 'fa-gears',
+        provider: existing?.provider || 'Smart Fox VTU',
+        active: Boolean(service.active)
+      };
+    });
+
+    renderServices();
+    renderHealth();
+    return ADMIN_SERVICES;
+  } catch (error) {
+    console.error('Could not load admin services:', error);
+    toast(error.message || 'Could not load services.', 'info');
+    return [];
+  }
+}
+
 function renderServices(){
-  const wrap=document.getElementById('serviceAdminGrid');if(!wrap)return;
-  wrap.innerHTML=ADMIN_SERVICES.map((s,i)=>`<article class="service-admin-card"><div class="service-admin-top"><span class="service-admin-icon"><i class="fa-solid ${s.icon}"></i></span><label class="service-toggle"><input type="checkbox" data-service-index="${i}" ${s.active?'checked':''}><i class="toggle-ui"></i></label></div><h3>${s.name}</h3><p>${s.desc}</p><div class="service-admin-meta"><small>${s.provider}</small><small>${s.active?'Available':'Coming later'}</small></div></article>`).join('');
-  wrap.querySelectorAll('input[data-service-index]').forEach(input=>input.addEventListener('change',()=>{ADMIN_SERVICES[Number(input.dataset.serviceIndex)].active=input.checked;toast(`${ADMIN_SERVICES[Number(input.dataset.serviceIndex)].name} ${input.checked?'enabled':'disabled'}.`);renderHealth();}));
+  const wrap = document.getElementById('serviceAdminGrid');
+  if (!wrap) return;
+
+  wrap.innerHTML = ADMIN_SERVICES.map((service, index) => `
+    <article class="service-admin-card">
+      <div class="service-admin-top">
+        <span class="service-admin-icon">
+          <i class="fa-solid ${service.icon}"></i>
+        </span>
+        <label class="service-toggle">
+          <input
+            type="checkbox"
+            data-service-index="${index}"
+            ${service.active ? 'checked' : ''}
+          >
+          <i class="toggle-ui"></i>
+        </label>
+      </div>
+      <h3>${service.name}</h3>
+      <p>${service.desc}</p>
+      <div class="service-admin-meta">
+        <small>${service.provider}</small>
+        <small>${service.active ? 'Available' : 'Disabled'}</small>
+      </div>
+    </article>
+  `).join('');
+
+  wrap.querySelectorAll('input[data-service-index]').forEach(input => {
+    input.addEventListener('change', async () => {
+      const index = Number(input.dataset.serviceIndex);
+      const service = ADMIN_SERVICES[index];
+
+      if (!service || !Number.isSafeInteger(service.id) || service.id < 1) {
+        input.checked = Boolean(service?.active);
+        toast('Invalid service ID. Please reload services.', 'info');
+        return;
+      }
+
+      const previousState = service.active;
+      const nextState = input.checked;
+      input.disabled = true;
+
+      try {
+        const result = await adminApi(
+          `/api/admin/services/${service.id}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: nextState })
+          }
+        );
+
+        if (!result?.success) {
+          throw new Error(result?.message || 'Could not update service.');
+        }
+
+        service.active = nextState;
+        toast(`${service.name} ${nextState ? 'enabled' : 'disabled'}.`);
+        renderServices();
+        renderHealth();
+      } catch (error) {
+        input.checked = previousState;
+        console.error('Service status update failed:', error);
+        toast(error.message || 'Could not update service.', 'info');
+      } finally {
+        input.disabled = false;
+      }
+    });
+  });
 }
 function exportText(filename,headers,rows){const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);toast('Export prepared successfully.');}
+
+async function loadAdminTransactions(){
+  try {
+    const data = await adminApi('/api/admin/transactions');
+
+    if (!data?.success || !Array.isArray(data.transactions)) {
+      throw new Error('Invalid transactions response from server.');
+    }
+
+    ADMIN_TX = data.transactions.map(tx => ({
+      ref: tx.ref || '',
+      user: tx.user || '',
+      service: tx.service || '',
+      amount: Number(tx.amount || 0),
+      date: tx.date
+        ? new Date(tx.date).toLocaleString('en-NG')
+        : '',
+      status: String(tx.status || 'pending').toLowerCase()
+    }));
+
+    renderTransactions();
+    renderMiniTx();
+
+    return ADMIN_TX;
+  } catch (error) {
+    console.error('Could not load admin transactions:', error);
+    toast(
+      error.message || 'Could not load transactions.',
+      'info'
+    );
+    return [];
+  }
+}
+async function loadAdminUsers(){
+  try {
+    const data = await adminApi('/api/admin/users');
+
+    if (!data?.success || !Array.isArray(data.users)) {
+      throw new Error('Invalid users response from server.');
+    }
+
+    ADMIN_USERS = data.users.map(user => ({
+      id: user.id,
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      joined: user.joined
+        ? new Date(user.joined).toLocaleDateString('en-CA')
+        : '',
+      wallet: Number(user.wallet || 0),
+      status: String(user.status || 'pending').toLowerCase()
+    }));
+
+    renderUsers();
+
+    const navUsersEl = document.getElementById('nav-users-count');
+
+    if (navUsersEl) {
+      navUsersEl.textContent = ADMIN_USERS.length.toLocaleString('en-NG');
+    }
+
+    return ADMIN_USERS;
+  } catch (error) {
+    console.error('Could not load admin users:', error);
+    toast(error.message || 'Could not load users.', 'info');
+    return [];
+  }
+}
+
+async function loadAdminDashboardData(){
+  try {
+    const data = await adminApi('/api/admin/dashboard');
+    const stats = data?.stats || data?.dashboard || data || {};
+
+    const totalUsers = Number(stats.totalUsers ?? 0);
+    const totalTransactions = Number(stats.totalTransactions ?? 0);
+    const successRate = Number(stats.successRate ?? 0);
+    const pendingTransactions = Number(stats.pendingTransactions ?? 0);
+    const failedTransactions = Number(stats.failedTransactions ?? 0);
+    const newUsersToday = Number(stats.newUsersToday ?? 0);
+
+    const usersEl = document.getElementById('stat-users');
+    const txEl = document.getElementById('stat-tx');
+    const successEl = document.getElementById('stat-success-rate');
+    const navUsersEl = document.getElementById('nav-users-count');
+    const pendingCountEl = document.getElementById('attention-pending-count');
+    const failedCountEl = document.getElementById('attention-failed-count');
+    const newUsersCountEl = document.getElementById('attention-new-users-count');
+
+    if (pendingCountEl) {
+      pendingCountEl.textContent = pendingTransactions.toLocaleString('en-NG');
+    }
+    if (failedCountEl) {
+      failedCountEl.textContent = failedTransactions.toLocaleString('en-NG');
+    }
+    if (newUsersCountEl) {
+      newUsersCountEl.textContent = newUsersToday.toLocaleString('en-NG');
+    }
+
+    if (usersEl) {
+      usersEl.textContent = totalUsers.toLocaleString('en-NG');
+    }
+
+    if (txEl) {
+      txEl.textContent = totalTransactions.toLocaleString('en-NG');
+    }
+
+    if (successEl) {
+      successEl.textContent = `${successRate.toFixed(1)}%`;
+    }
+
+    if (navUsersEl) {
+      navUsersEl.textContent = totalUsers.toLocaleString('en-NG');
+    }
+
+    /*
+     * The current backend value is walletBalance.
+     * Do not display it as service volume because those are different metrics.
+     */
+    const volumeEl = document.getElementById('stat-volume');
+
+    if (volumeEl && stats.walletBalance !== undefined) {
+      volumeEl.textContent = money(stats.walletBalance);
+      volumeEl.title = 'Current total wallet balance';
+    }
+
+    return stats;
+  } catch (error) {
+    console.error('Could not load admin dashboard:', error);
+    toast(error.message || 'Could not load dashboard data.', 'info');
+    return null;
+  }
+}
+
+function applyAdminProfile(admin){
+  if (!admin) return;
+
+  const name = admin.name || 'Administrator';
+  const role = admin.role || 'admin';
+
+  const roleLabel = role
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+
+  const sidebarName = document.getElementById('admin-sidebar-name');
+  const sidebarRole = document.getElementById('admin-sidebar-role');
+  const profileName = document.getElementById('admin-profile-name');
+  const profileRole = document.getElementById('admin-profile-role');
+  const welcomeTitle = document.getElementById('admin-welcome-title');
+
+  if (sidebarName) sidebarName.textContent = name;
+  if (sidebarRole) sidebarRole.textContent = roleLabel;
+
+  if (profileName) profileName.textContent = name;
+  if (profileRole) profileRole.textContent = roleLabel;
+
+  if (welcomeTitle) {
+    welcomeTitle.textContent = `Good evening, ${name}.`;
+  }
+}
+
+
+let ADMIN_REPORT = null;
+
+async function loadAdminReport() {
+  const text = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  const bar = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = `${Math.max(0, Math.min(100, Number(value) || 0))}%`;
+  };
+
+  try {
+    const result = await adminApi('/api/admin/analytics');
+    if (!result?.success || !result.analytics) {
+      throw new Error(result?.message || 'Invalid analytics response.');
+    }
+    const r = ADMIN_REPORT = result.analytics;
+    const volume = Number(r.totalServiceVolume || 0);
+    const tx = Number(r.totalTransactions || 0);
+    const success = Number(r.successfulTransactions || 0);
+    const successRate = Number(r.successRate || 0);
+    const users = Number(r.totalUsers || 0);
+    const active = Number(r.activeUsers || 0);
+    const activeRate = Number(r.activeUserRate || 0);
+
+    text('reportTotalVolume', money(volume));
+    text('reportSuccessfulTransactions', success.toLocaleString('en-NG'));
+    text('reportSuccessCaption', `${successRate.toFixed(1)}% of ${tx.toLocaleString('en-NG')} service transactions`);
+    text('reportActiveUsers', active.toLocaleString('en-NG'));
+    text('reportActiveCaption', `${activeRate.toFixed(1)}% of ${users.toLocaleString('en-NG')} registered users`);
+    bar('reportVolumeBar', volume > 0 ? 100 : 0);
+    bar('reportSuccessBar', successRate);
+    bar('reportActiveBar', activeRate);
+
+    const ids = {
+      data: ['reportDataPercent', 'reportDataBar'],
+      airtime: ['reportAirtimePercent', 'reportAirtimeBar'],
+      'school-fees': ['reportSchoolFeesPercent', 'reportSchoolFeesBar']
+    };
+    for (const s of (Array.isArray(r.services) ? r.services : [])) {
+      if (!ids[s.key]) continue;
+      const p = Number(s.percentage || 0);
+      text(ids[s.key][0], `${p.toFixed(1)}%`);
+      bar(ids[s.key][1], p);
+    }
+    return r;
+  } catch (error) {
+    ADMIN_REPORT = null;
+    ['reportTotalVolume','reportSuccessfulTransactions','reportActiveUsers'].forEach(id => text(id, 'Unavailable'));
+    text('reportSuccessCaption', 'Could not load report data');
+    text('reportActiveCaption', 'Could not load report data');
+    console.error('Could not load admin report:', error);
+    toast(error.message || 'Could not load report analytics.', 'info');
+    return null;
+  }
+}
+
+function exportAdminReport() {
+  if (!ADMIN_REPORT) {
+    toast('Report data is not loaded. Refresh and try again.', 'info');
+    return;
+  }
+  const r = ADMIN_REPORT;
+  const rows = [
+    ['Total service volume (NGN)', Number(r.totalServiceVolume || 0)],
+    ['Total service transactions', Number(r.totalTransactions || 0)],
+    ['Successful transactions', Number(r.successfulTransactions || 0)],
+    ['Success rate (%)', Number(r.successRate || 0)],
+    ['Registered users', Number(r.totalUsers || 0)],
+    ['Active users', Number(r.activeUsers || 0)],
+    ['Active user rate (%)', Number(r.activeUserRate || 0)]
+  ];
+  for (const s of (Array.isArray(r.services) ? r.services : [])) {
+    rows.push([`${s.label} successful volume (NGN)`, Number(s.volume || 0)]);
+    rows.push([`${s.label} share (%)`, Number(s.percentage || 0)]);
+  }
+  exportText('smart-fox-report.csv', ['Metric','Value'], rows);
+}
+
+async function bootAdminDashboard(){
+  const admin = await requireAdminAuth();
+
+  if (!admin) return;
+
+  applyAdminProfile(admin);
+
+  document
+    .getElementById('adminLogout')
+    ?.addEventListener('click', event => {
+      event.preventDefault();
+      adminLogout();
+    });
+
+  await loadAdminDashboardData();
+  await loadAdminUsers();
+  await loadAdminTransactions();
+  await loadAdminWallets();
+  await loadAdminWalletStats();
+  await loadAdminServices();
+  await loadAdminReport();
+
+  initAdmin();
+}
+
 function initAdmin(){
   renderRevenueChart();renderHealth();renderMiniTx();renderUsers();renderTransactions();renderWallets();renderServices();
   document.querySelectorAll('.admin-nav-link').forEach(b=>b.addEventListener('click',()=>switchAdminSection(b.dataset.section)));
@@ -111,7 +663,7 @@ function initAdmin(){
   document.getElementById('exportUsers')?.addEventListener('click',()=>exportText('smart-fox-users.csv',['Name','Email','Phone','Joined','Wallet','Status'],ADMIN_USERS.map(u=>[u.name,u.email,u.phone,u.joined,u.wallet,u.status])));
   document.getElementById('exportTransactions')?.addEventListener('click',()=>exportText('smart-fox-transactions.csv',['Reference','User','Service','Amount','Date','Status'],ADMIN_TX.map(t=>[t.ref,t.user,t.service,t.amount,t.date,t.status])));
   document.getElementById('exportWallets')?.addEventListener('click',()=>exportText('smart-fox-wallets.csv',['Reference','User','Type','Amount','Balance','Status'],ADMIN_WALLET.map(w=>[w.ref,w.user,w.type,w.amount,w.balance,w.status])));
-  document.getElementById('exportReport')?.addEventListener('click',()=>exportText('smart-fox-report.csv',['Metric','Value'],[['Total service volume','2570000'],['Total users','1248'],['Transactions','3562'],['Success rate','93.8%']]));
+  document.getElementById('exportReport')?.addEventListener('click', exportAdminReport);
   document.getElementById('saveSettings')?.addEventListener('click',()=>toast('Admin settings saved locally for this demo.'));
   document.getElementById('addServiceBtn')?.addEventListener('click',()=>toast('Service creation will be connected to the backend in a later milestone.','info'));
   document.querySelectorAll('.security-row').forEach(b=>b.addEventListener('click',()=>toast('This control will be connected to authenticated admin APIs later.','info')));
@@ -120,4 +672,4 @@ function initAdmin(){
   document.getElementById('fundingToggle')?.addEventListener('change',e=>toast(`Wallet funding ${e.target.checked?'enabled':'disabled'}.`));
 }
 function closeMobileAdmin(){document.getElementById('adminSidebar')?.classList.remove('open');document.getElementById('adminOverlay')?.classList.remove('open');}
-document.addEventListener('DOMContentLoaded',initAdmin);
+document.addEventListener('DOMContentLoaded',bootAdminDashboard);

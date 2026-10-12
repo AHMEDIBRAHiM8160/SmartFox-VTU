@@ -1,111 +1,114 @@
 /* ============================================
    Smart Fox VTU — Airtime (airtime.js)
-   purchaseAirtime() simulates the flow now.
-   Later: POST /api/airtime/purchase
-   ============================================ */
 
-const SFVTU_NETWORKS = [
-  { key: 'mtn', label: 'MTN', color: '#ffcc08', logo: 'assets/networks/mtn.svg' },
-  { key: 'airtel', label: 'Airtel', color: '#e60012', logo: 'assets/networks/airtel.svg' },
-  { key: 'glo', label: 'Glo', color: '#008c44', logo: 'assets/networks/glo.svg' },
-  { key: '9mobile', label: '9mobile', color: '#00a88f', logo: 'assets/networks/9mobile.svg' }
-];
+   Airtime purchases are disabled until a real
+   VTU provider is connected.
+
+   Future API:
+   POST /api/airtime/purchase
+   ============================================ */
 
 let sfvtuAirtimeNetwork = null;
 
-function purchaseAirtime({ network, phone, amount }) {
-  const wallet = getWallet();
-  if (amount > wallet.balance) throw new Error('Insufficient wallet balance.');
-  setWalletBalance(wallet.balance - amount);
-  const tx = {
-    ref: generateRef('ATM'),
-    service: 'Airtime',
-    description: `Airtime Purchase (${network.toUpperCase()} ${phone})`,
-    amount,
-    type: 'debit',
-    date: new Date().toISOString(),
-    status: 'success'
-  };
-  addTransaction(tx);
-  addNotification(`Your ${network.toUpperCase()} airtime purchase was successful.`);
-  return tx;
+async function loadAirtimeWalletBalance() {
+  const balanceEl = document.getElementById('airtime-balance');
+  const session = sfvtuGet(SFVTU_KEYS.session, null);
+
+  if (!balanceEl || !session || !session.token) {
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/wallet', {
+      headers: {
+        Authorization: `Bearer ${session.token}`
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Could not load wallet.');
+    }
+
+    balanceEl.textContent = formatNaira(Number(result.wallet.balance));
+  } catch (error) {
+    console.error('Airtime wallet error:', error.message);
+    balanceEl.textContent = formatNaira(0);
+  }
 }
 
 function initAirtimePage() {
-  const wallet = getWallet();
-  document.getElementById('airtime-balance').textContent = formatNaira(wallet.balance);
+  loadAirtimeWalletBalance();
 
   const grid = document.getElementById('network-grid');
-  grid.innerHTML = SFVTU_NETWORKS.map(n => `
-    <div class="network-tile" data-net="${n.key}">
-      <img class="network-logo" src="${n.logo}" alt="${n.label} logo">
-      <span class="net-label">${n.label}</span>
-    </div>`).join('');
 
-  grid.querySelectorAll('.network-tile').forEach(tile => {
-    tile.addEventListener('click', () => {
-      grid.querySelectorAll('.network-tile').forEach(t => t.classList.remove('selected'));
-      tile.classList.add('selected');
-      sfvtuAirtimeNetwork = tile.dataset.net;
+  if (grid) {
+    grid.innerHTML = SFVTU_NETWORKS.map(n => `
+      <div class="network-tile" data-net="${n.key}">
+        <img class="network-logo" src="${n.logo}" alt="${n.label} logo">
+        <span class="net-label">${n.label}</span>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('.network-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        grid.querySelectorAll('.network-tile').forEach(t => {
+          t.classList.remove('selected');
+        });
+
+        tile.classList.add('selected');
+        sfvtuAirtimeNetwork = tile.dataset.net;
+      });
     });
-  });
+  }
 
   document.querySelectorAll('#airtime-amount-chips .chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      document.querySelectorAll('#airtime-amount-chips .chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('#airtime-amount-chips .chip').forEach(c => {
+        c.classList.remove('selected');
+      });
+
       chip.classList.add('selected');
-      document.getElementById('airtime-amount').value = chip.dataset.amount;
+
+      const amountInput = document.getElementById('airtime-amount');
+
+      if (amountInput) {
+        amountInput.value = chip.dataset.amount;
+      }
     });
   });
 
   const form = document.getElementById('airtime-form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+
+  if (!form) {
+    return;
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+
     const phone = document.getElementById('airtime-phone').value.trim();
     const amount = Number(document.getElementById('airtime-amount').value);
 
-    if (!sfvtuAirtimeNetwork) { toast('Select a network.', 'error'); return; }
-    if (!/^0\d{10}$/.test(phone)) { toast('Enter a valid 11-digit phone number.', 'error'); return; }
-    if (!amount || amount < 50) { toast('Enter a valid amount (min ₦50).', 'error'); return; }
-    if (amount > getWallet().balance) { toast('Insufficient wallet balance.', 'error'); return; }
+    if (!sfvtuAirtimeNetwork) {
+      toast('Select a network.', 'error');
+      return;
+    }
 
-    startProtectedPurchase({
-      type: 'airtime',
-      network: sfvtuAirtimeNetwork,
-      phone,
-      amount
-    });
-  });
-}
+    if (!/^0\d{10}$/.test(phone)) {
+      toast('Enter a valid 11-digit phone number.', 'error');
+      return;
+    }
 
-/* ---------- Shared confirm / success modal helpers (used by airtime, data, school-fees) ---------- */
-function openConfirmModal({ title, rows, confirmLabel, onConfirm }) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <h3>${title}</h3>
-      ${rows.map(r => `<div class="modal-row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
-        <button class="btn btn-primary btn-block" id="confirm-proceed">${confirmLabel}</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  document.getElementById('confirm-cancel').addEventListener('click', () => overlay.remove());
-  document.getElementById('confirm-proceed').addEventListener('click', (e) => {
-    e.target.disabled = true;
-    e.target.textContent = 'Processing...';
-    onConfirm(() => overlay.remove());
-  });
-}
+    if (!Number.isFinite(amount) || amount < 50) {
+      toast('Enter a valid amount (min ₦50).', 'error');
+      return;
+    }
 
-function showSuccessModal(heading, tx, amount) {
-  saveReceipt({
-    heading,
-    tx,
-    amount,
-    createdAt: new Date().toISOString()
+    toast(
+      'Airtime purchase is currently unavailable. Please try again after a VTU provider is connected.',
+      'error'
+    );
   });
-  window.location.href = 'receipt.html';
 }

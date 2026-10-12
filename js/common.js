@@ -6,6 +6,13 @@
    without changing any page's calling code.
    ============================================ */
 
+const SFVTU_NETWORKS = [
+  { key: 'mtn', label: 'MTN', logo: 'assets/networks/mtn.svg' },
+  { key: 'airtel', label: 'Airtel', logo: 'assets/networks/airtel.svg' },
+  { key: 'glo', label: 'Glo', logo: 'assets/networks/glo.svg' },
+  { key: '9mobile', label: '9mobile', logo: 'assets/networks/9mobile.svg' }
+];
+
 const SFVTU_KEYS = {
   user: 'sfvtu_user',
   wallet: 'sfvtu_wallet',

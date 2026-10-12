@@ -1,0 +1,655 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { rateLimit } = require('express-rate-limit');
+const { pool } = require('../config/db');
+const { authenticateAdminToken } = require('../middleware/adminAuth');
+
+const router = express.Router();
+
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many admin login attempts. Please try again later.'
+  }
+});
+
+function createAdminToken(admin) {
+  return jwt.sign(
+    {
+      sub: String(admin.id),
+      email: admin.email,
+      type: 'admin',
+      role: admin.role
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '2h' }
+  );
+}
+
+function publicAdmin(admin) {
+  return {
+    id: admin.id,
+    name: admin.name,
+    email: admin.email,
+    role: admin.role,
+    status: admin.status
+  };
+}
+
+/*
+ * POST /api/admin/login
+ */
+router.post('/login', adminLoginLimiter, async (req, res) => {
+  const email = String(req.body.email || req.body.identifier || '').trim().toLowerCase();
+  const password = String(req.body.password || '');
+
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Enter your admin email and password.'
+    });
+  }
+
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      message: 'Authentication is not configured.'
+    });
+  }
+
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, name, email, password_hash, role, status
+       FROM admins
+       WHERE email = ?
+       LIMIT 1`,
+      [email]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin email or password.'
+      });
+    }
+
+    const admin = rows[0];
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      admin.password_hash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin email or password.'
+      });
+    }
+
+    if (admin.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'This admin account is not active.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Admin login successful.',
+      admin: publicAdmin(admin),
+      token: createAdminToken(admin)
+    });
+  } catch (error) {
+    console.error('Admin login failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not log in as admin.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/me
+ */
+router.get('/me', authenticateAdminToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, name, email, role, status
+       FROM admins
+       WHERE id = ?
+       LIMIT 1`,
+      [req.adminId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin account not found.'
+      });
+    }
+
+    if (rows[0].status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin account is not active.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      admin: publicAdmin(rows[0])
+    });
+  } catch (error) {
+    console.error('Admin profile lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve admin profile.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/dashboard
+ */
+router.get('/dashboard', authenticateAdminToken, async (req, res) => {
+  try {
+    const [
+      [userRows],
+      [walletRows],
+      [transactionRows],
+      [successfulRows],
+      [pendingRows]
+    ] = await Promise.all([
+      pool.execute(
+        `SELECT COUNT(*) AS total
+         FROM users`
+      ),
+      pool.execute(
+        `SELECT COALESCE(SUM(balance), 0) AS total
+         FROM wallets
+         WHERE status = 'active'`
+      ),
+      pool.execute(
+        `SELECT
+           (
+             (SELECT COUNT(*) FROM wallet_transactions) +
+             (SELECT COUNT(*) FROM airtime_transactions) +
+             (SELECT COUNT(*) FROM data_transactions) +
+             (SELECT COUNT(*) FROM school_fee_transactions)
+           ) AS total`
+      ),
+      pool.execute(
+        `SELECT
+           (
+             (SELECT COUNT(*) FROM wallet_transactions WHERE status = 'successful') +
+             (SELECT COUNT(*) FROM airtime_transactions WHERE status = 'successful') +
+             (SELECT COUNT(*) FROM data_transactions WHERE status = 'successful') +
+             (SELECT COUNT(*) FROM school_fee_transactions WHERE status = 'successful')
+           ) AS total`
+      ),
+      pool.execute(
+        `SELECT
+           (
+             (SELECT COUNT(*) FROM wallet_transactions WHERE status = 'pending') +
+             (SELECT COUNT(*) FROM airtime_transactions WHERE status = 'pending') +
+             (SELECT COUNT(*) FROM data_transactions WHERE status = 'pending') +
+             (SELECT COUNT(*) FROM school_fee_transactions WHERE status = 'pending')
+           ) AS total`
+      )
+    ]);
+
+    const totalTransactions = Number(transactionRows[0].total);
+    const successfulTransactions = Number(successfulRows[0].total);
+
+    return res.json({
+      success: true,
+      dashboard: {
+        totalUsers: Number(userRows[0].total),
+        walletBalance: Number(walletRows[0].total),
+        totalTransactions,
+        successfulTransactions,
+        pendingTransactions: Number(pendingRows[0].total),
+        successRate: totalTransactions
+          ? Number(((successfulTransactions / totalTransactions) * 100).toFixed(1))
+          : 0
+      }
+    });
+  } catch (error) {
+    console.error('Admin dashboard failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve dashboard data.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/users
+ */
+router.get('/users', authenticateAdminToken, async (req, res) => {
+  try {
+    const search = String(req.query.search || '').trim();
+    const status = String(req.query.status || 'all').trim().toLowerCase();
+
+    let sql = `
+      SELECT
+        u.id,
+        u.full_name,
+        u.email,
+        u.phone,
+        u.status,
+        u.created_at,
+        COALESCE(w.balance, 0) AS wallet_balance
+      FROM users u
+      LEFT JOIN wallets w ON w.user_id = u.id
+      WHERE 1 = 1
+    `;
+
+    const params = [];
+
+    if (search) {
+      sql += `
+        AND (
+          u.full_name LIKE ?
+          OR u.email LIKE ?
+          OR u.phone LIKE ?
+        )
+      `;
+
+      const value = `%${search}%`;
+      params.push(value, value, value);
+    }
+
+    if (['active', 'suspended', 'pending'].includes(status)) {
+      sql += ` AND u.status = ?`;
+      params.push(status);
+    }
+
+    sql += ` ORDER BY u.created_at DESC LIMIT 500`;
+
+    const [rows] = await pool.execute(sql, params);
+
+    return res.json({
+      success: true,
+      users: rows.map(row => ({
+        id: row.id,
+        name: row.full_name,
+        email: row.email,
+        phone: row.phone,
+        joined: row.created_at,
+        wallet: Number(row.wallet_balance),
+        status: row.status
+      }))
+    });
+  } catch (error) {
+    console.error('Admin users lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve users.'
+    });
+  }
+});
+
+/*
+ * PATCH /api/admin/users/:id/status
+ */
+router.patch('/users/:id/status', authenticateAdminToken, async (req, res) => {
+  const userId = Number(req.params.id);
+  const status = String(req.body.status || '').trim().toLowerCase();
+
+  if (!Number.isSafeInteger(userId) || userId < 1) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid user ID.'
+    });
+  }
+
+  if (!['active', 'suspended', 'pending'].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid user status.'
+    });
+  }
+
+  try {
+    const [result] = await pool.execute(
+      `UPDATE users
+       SET status = ?
+       WHERE id = ?`,
+      [status, userId]
+    );
+
+    if (!result.affectedRows) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'User status updated successfully.'
+    });
+  } catch (error) {
+    console.error('User status update failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not update user status.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/transactions
+ */
+router.get('/transactions', authenticateAdminToken, async (req, res) => {
+  try {
+    const search = String(req.query.search || '').trim();
+    const status = String(req.query.status || 'all').trim().toLowerCase();
+
+    let sql = `
+      SELECT *
+      FROM (
+        SELECT
+          wt.reference,
+          u.full_name AS user_name,
+          'Wallet Funding' AS service,
+          wt.amount,
+          wt.status,
+          wt.created_at
+        FROM wallet_transactions wt
+        INNER JOIN users u ON u.id = wt.user_id
+
+        UNION ALL
+
+        SELECT
+          at.our_reference AS reference,
+          u.full_name AS user_name,
+          'Airtime' AS service,
+          at.amount,
+          at.status,
+          at.created_at
+        FROM airtime_transactions at
+        INNER JOIN users u ON u.id = at.user_id
+
+        UNION ALL
+
+        SELECT
+          dt.our_reference AS reference,
+          u.full_name AS user_name,
+          'Data' AS service,
+          dt.amount,
+          dt.status,
+          dt.created_at
+        FROM data_transactions dt
+        INNER JOIN users u ON u.id = dt.user_id
+
+        UNION ALL
+
+        SELECT
+          sf.our_reference AS reference,
+          u.full_name AS user_name,
+          'School Fees' AS service,
+          sf.amount,
+          sf.status,
+          sf.created_at
+        FROM school_fee_transactions sf
+        INNER JOIN users u ON u.id = sf.user_id
+      ) AS tx
+      WHERE 1 = 1
+    `;
+
+    const params = [];
+
+    if (search) {
+      sql += `
+        AND (
+          reference LIKE ?
+          OR user_name LIKE ?
+          OR service LIKE ?
+        )
+      `;
+
+      const value = `%${search}%`;
+      params.push(value, value, value);
+    }
+
+    if (['pending', 'successful', 'failed', 'refunded', 'reversed'].includes(status)) {
+      sql += ` AND status = ?`;
+      params.push(status);
+    }
+
+    sql += ` ORDER BY created_at DESC LIMIT 500`;
+
+    const [rows] = await pool.execute(sql, params);
+
+    return res.json({
+      success: true,
+      transactions: rows.map(row => ({
+        ref: row.reference,
+        user: row.user_name,
+        service: row.service,
+        amount: Number(row.amount),
+        date: row.created_at,
+        status: row.status
+      }))
+    });
+  } catch (error) {
+    console.error('Admin transactions lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve transactions.'
+    });
+  }
+});
+
+
+/*
+ * GET /api/admin/wallet-stats
+ */
+router.get('/wallet-stats', authenticateAdminToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT
+         (SELECT COALESCE(SUM(balance), 0)
+          FROM wallets) AS total_wallet_balance,
+
+         (SELECT COALESCE(SUM(amount), 0)
+          FROM wallet_transactions
+          WHERE type = 'funding'
+            AND status = 'successful'
+            AND created_at >= CURDATE()
+            AND created_at < CURDATE() + INTERVAL 1 DAY
+         ) AS today_funding,
+
+         (SELECT COUNT(*)
+          FROM wallet_transactions
+          WHERE type = 'funding'
+            AND status = 'successful'
+            AND created_at >= CURDATE()
+            AND created_at < CURDATE() + INTERVAL 1 DAY
+         ) AS today_funding_count,
+
+         (SELECT COALESCE(SUM(amount), 0)
+          FROM wallet_transactions
+          WHERE type = 'purchase'
+            AND status = 'successful'
+            AND created_at >= CURDATE()
+            AND created_at < CURDATE() + INTERVAL 1 DAY
+         ) AS today_spending,
+
+         (SELECT COALESCE(SUM(amount), 0)
+          FROM refunds
+          WHERE status = 'pending'
+         ) AS pending_refund_amount,
+
+         (SELECT COUNT(*)
+          FROM refunds
+          WHERE status = 'pending'
+         ) AS pending_refund_count`
+    );
+
+    const row = rows[0];
+
+    return res.json({
+      success: true,
+      stats: {
+        totalWalletBalance: Number(row.total_wallet_balance),
+        todayFunding: Number(row.today_funding),
+        todayFundingCount: Number(row.today_funding_count),
+        todaySpending: Number(row.today_spending),
+        pendingRefundAmount: Number(row.pending_refund_amount),
+        pendingRefundCount: Number(row.pending_refund_count)
+      }
+    });
+  } catch (error) {
+    console.error('Admin wallet statistics lookup failed:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve wallet statistics.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/wallets
+ */
+router.get('/wallets', authenticateAdminToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT
+         wt.reference,
+         u.full_name AS user_name,
+         wt.type,
+         wt.amount,
+         wt.balance_after,
+         wt.status,
+         wt.created_at
+       FROM wallet_transactions wt
+       INNER JOIN users u ON u.id = wt.user_id
+       ORDER BY wt.created_at DESC, wt.id DESC
+       LIMIT 500`
+    );
+
+    return res.json({
+      success: true,
+      wallets: rows.map(row => ({
+        ref: row.reference,
+        user: row.user_name,
+        type: row.type,
+        amount: Number(row.amount),
+        balance: Number(row.balance_after),
+        status: row.status,
+        date: row.created_at
+      }))
+    });
+  } catch (error) {
+    console.error('Admin wallets lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve wallet activities.'
+    });
+  }
+});
+
+/*
+ * GET /api/admin/services
+ */
+router.get('/services', authenticateAdminToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT
+         id,
+         service_key,
+         service_name,
+         description,
+         is_enabled,
+         created_at,
+         updated_at
+       FROM services
+       ORDER BY id ASC`
+    );
+
+    return res.json({
+      success: true,
+      services: rows.map(row => ({
+        id: row.id,
+        key: row.service_key,
+        name: row.service_name,
+        description: row.description,
+        active: Boolean(row.is_enabled)
+      }))
+    });
+  } catch (error) {
+    console.error('Admin services lookup failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not retrieve services.'
+    });
+  }
+});
+
+/*
+ * PATCH /api/admin/services/:id
+ */
+router.patch('/services/:id', authenticateAdminToken, async (req, res) => {
+  const serviceId = Number(req.params.id);
+
+  if (!Number.isSafeInteger(serviceId) || serviceId < 1) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid service ID.'
+    });
+  }
+
+  if (typeof req.body.enabled !== 'boolean') {
+    return res.status(400).json({
+      success: false,
+      message: 'enabled must be true or false.'
+    });
+  }
+
+  try {
+    const [result] = await pool.execute(
+      `UPDATE services
+       SET is_enabled = ?
+       WHERE id = ?`,
+      [req.body.enabled ? 1 : 0, serviceId]
+    );
+
+    if (!result.affectedRows) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Service status updated successfully.'
+    });
+  } catch (error) {
+    console.error('Service update failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not update service.'
+    });
+  }
+});
+
+module.exports = router;

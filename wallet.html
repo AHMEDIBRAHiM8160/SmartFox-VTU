@@ -26,11 +26,41 @@
   </div>
 
   <div class="panel bank-funding-card" style="margin-bottom:14px;">
-    <div class="panel-head"><h3><i class="fa-solid fa-building-columns"></i> Bank Transfer</h3><span class="badge badge-pending">Demo setup</span></div>
-    <p style="font-size:.68rem;color:var(--muted);margin-bottom:12px;">When manual bank-transfer funding is enabled, use the business account details below and keep your payment reference.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
-      <div style="padding:10px;background:var(--blue-soft);border-radius:10px;"><div style="font-size:.62rem;color:var(--muted);">OPay</div><small style="display:block;font-size:.58rem;color:var(--muted);margin:2px 0;">Ahmed Ibrahim</small><strong style="font-size:.78rem;">9134093723</strong></div>
-      <div style="padding:10px;background:#fff3e3;border-radius:10px;"><div style="font-size:.62rem;color:var(--muted);">UBA</div><small style="display:block;font-size:.58rem;color:var(--muted);margin:2px 0;">Ahmed Ibrahim</small><strong style="font-size:.78rem;">2200481720</strong></div>
+    <div class="panel-head">
+      <h3><i class="fa-solid fa-building-columns"></i> Your Bank Transfer Account</h3>
+      <span class="badge badge-pending" id="dva-status-badge">Not requested</span>
+    </div>
+    <p style="font-size:.78rem;color:var(--muted);margin:10px 0;">
+      Request a dedicated account for your wallet. Once Paystack confirms it,
+      you can transfer money to that account and eligible payments will be credited automatically.
+    </p>
+
+    <div id="dva-account-details" hidden>
+      <div style="padding:12px;background:var(--blue-soft);border-radius:10px;margin:12px 0;">
+        <div style="font-size:.72rem;color:var(--muted);">Bank</div>
+        <strong id="dva-bank-name">—</strong>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:10px;">Account name</div>
+        <strong id="dva-account-name">—</strong>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:10px;">Account number</div>
+        <strong id="dva-account-number" style="font-size:1.15rem;letter-spacing:1px;">—</strong>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:8px;">Currency: NGN</div>
+        <button type="button" id="dva-copy-account" class="btn btn-primary" style="margin-top:12px;">
+          Copy account number
+        </button>
+      </div>
+    </div>
+
+    <p id="dva-status-message" role="status" aria-live="polite"
+       style="font-size:.78rem;margin:10px 0;">Checking your account status...</p>
+
+    <div id="dva-request-controls">
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:.76rem;margin:12px 0;">
+        <input type="checkbox" id="dva-consent" style="margin-top:3px;">
+        <span>I agree to request a dedicated bank account using my registered profile details for receiving wallet deposits.</span>
+      </label>
+      <button type="button" id="dva-request-button" class="btn btn-primary btn-block" disabled>
+        Request Dedicated Account
+      </button>
     </div>
   </div>
 

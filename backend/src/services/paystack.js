@@ -50,7 +50,8 @@ async function initializeTransaction({
       amount: String(amount),
       currency,
       reference,
-      metadata
+      metadata,
+      ...(callback_url ? { callback_url } : {})
     })
   });
 }
@@ -64,7 +65,28 @@ async function verifyTransaction(reference) {
   );
 }
 
+async function assignDedicatedAccount({
+  email,
+  first_name,
+  last_name,
+  phone,
+  preferred_bank = 'wema-bank'
+}) {
+  return paystackRequest('/dedicated_account/assign', {
+    method: 'POST',
+    body: JSON.stringify({
+      email,
+      first_name,
+      last_name,
+      phone,
+      preferred_bank,
+      country: 'NG'
+    })
+  });
+}
+
 module.exports = {
   initializeTransaction,
-  verifyTransaction
+  verifyTransaction,
+  assignDedicatedAccount
 };
